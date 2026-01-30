@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="robots" content="noindex">
+	<title>People network</title>
+	<script src="https://d3js.org/d3.v6.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<style>
+		svg {
+			border: 1px solid black;
+		}
+		.node text {
+			pointer-events: none;
+			font-size: 12px;
+			text-anchor: middle;
+		}
+		.legend {
+			font-family: Arial, sans-serif;
+			font-size: 12px;
+		}
+		.legend rect {
+			stroke: #000;
+			stroke-width: 1px;
+		}
+	</style>
+</head>
+<body>
+
+<h1>People network</h1>
+<div id="output"></div>
+
+<script>
+
+// Init: Several constants
+const NODE_COLOUR_PEOPLE = "#18A8D5"; 		// NAS light-blue
+const NODE_COLOUR_TOPIC = "#184AD5"; 		// dark blue
+const NODE_COLOUR_INSTITUTION = "#18D5A3"; 	// green
+const UI_WIDTH = 1000; 						// size of the UI
+const UI_HEIGHT = 550; 						// size of the UI
+const LOCATION_EXCEL_PEOPLE = 'people.xlsx';
+const NODE_TYPE_PEOPLE = 1;
+const NODE_TYPE_TOPIC = 2;
+const NODE_TYPE_INSTITUTION = 3;
+const SIMULATION_FORCE_STRENGTH = 50;	// simulation attract strength
+const SIMULATION_REPEL_DISTANCE = 100;	// simulation repel distance
+const CIRCLE_RADIUS = 180;
+
+
+// Fetch the Excel file containing the people
+async function fetchPeople() {
+try {
+	const response = await fetch(LOCATION_EXCEL_PEOPLE);
+	if (!response.ok) {
+		throw new Error('Failed to fetch people data from ' + LOCATION_EXCEL_PEOPLE);
+	}
+	const arrayBuffer = await response.arrayBuffer();
+	const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+	const firstSheetName = workbook.SheetNames[0];
+	const worksheet = workbook.Sheets[firstSheetName];
+	jsonPeople = XLSX.utils.sheet_to_json(worksheet);
+	console.log(jsonPeople);
+
+	// Change topics and institutions into arrays
+	jsonPeople = jsonPeople.filter(person => {
+		if (person.position != "former") {
+			person.topics = person.topics.split(',').map(topic => topic.trim());
+			person.institutions = person.institutions.split(',').map(inst => inst.trim());
+			person.node_type = NODE_TYPE_PEOPLE;
+			return true;
+		} else {
+			return false;
+		}
+	});
+	console.log("Input data:", jsonPeople);
+	
+	// Get institutions
+	const tempInstitutions = jsonPeople.flatMap(person => person.institutions);
+	const strInstitutions = [...new Set(tempInstitutions)];
+	const institutions = strInstitutions.map((str, index) => ({ node_type: NODE_TYPE_INSTITUTION, name: str }));
+
+	// Get topics
+	const tempTopics = jsonPeople.flatMap(person => person.topics);
+	const strTopics = [...new Set(tempTopics)];
+	const topics = strTopics.map((str, index) => ({ node_type: NODE_TYPE_TOPIC, name: str }));
+
+	// Make node list
+	const nodes = jsonPeople.concat(topics, institutions);
+	console.log("Nodes:", nodes);
+
+	// Make link list
+	const links = [];
+	nodes.forEach(node => {
+		if (node.node_type === NODE_TYPE_PEOPLE) {
+			node.topics.forEach(topic => {
+				const topicNode = nodes.find(n => n.node_type === NODE_TYPE_TOPIC && n.name === topic);
+				if (topicNode) links.push({ source: node, target: topicNode });
+			});
+			node.institutions.forEach(inst => {
+				const instNode = nodes.find(n => n.node_type === NODE_TYPE_INSTITUTION && n.name === inst);
+				if (instNode) links.push({ source: node, target: instNode });
+			});
+		}
+	});
+	console.log("Links:", links);
+
+	// Show graph
+	const svg = d3.select("#output").append("svg")
+		.attr("width", UI_WIDTH)
+		.attr("height", UI_HEIGHT);
+
+	// Define node colour
+	function nodeSetColour(d) {
+		switch(d.node_type) {
+			case NODE_TYPE_PEOPLE:
+				return NODE_COLOUR_PEOPLE;
+				break;
+			case NODE_TYPE_TOPIC:
+				return NODE_COLOUR_TOPIC;
+				break;
+			case NODE_TYPE_INSTITUTION:
+				return NODE_COLOUR_INSTITUTION;
+				break;
+			default:
+				return NODE_COLOUR_PEOPLE;
+				break;
+		}
+	}
+
+	// Create links
+	const link = svg.append("g")
+		.attr("class", "links")
+		.selectAll("line")
+		.data(links)
+		.enter().append("line")
+		.attr("stroke", "#999")
+		.attr("stroke-width", 1.5);
+
+	// Create nodes
+	const node = svg.append("g")
+		.attr("class", "nodes")
+		.selectAll("g")
+		.data(nodes)
+		.enter().append("g")
+		.call(d3.drag()
+			.on("start", dragstarted)
+			.on("drag", dragged)
+			.on("end", dragended));
+
+	node.append("circle")
+		.attr("r", 15)
+		.attr("fill", d => nodeSetColour(d));
+
+	node.append("text")
+		.attr("x", 20)
+		.attr("y", 5)
+		.text(d => d.name);
+
+	// People should be fixed whereas other nodes can be moved around
+	const peopleNodes = nodes.filter(d => d.node_type === NODE_TYPE_PEOPLE);
+	const otherNodes = nodes.filter(d => d.node_type !== NODE_TYPE_PEOPLE);
+
+	const angleStep = (2 * Math.PI) / peopleNodes.length;
+	peopleNodes.forEach((node, index) => {
+		node.fx = UI_WIDTH / 2 + CIRCLE_RADIUS * Math.cos(index * angleStep);
+		node.fy = UI_HEIGHT / 2 + CIRCLE_RADIUS * Math.sin(index * angleStep);
+	});
+	otherNodes.forEach((node, index) => {
+		r = 200 + Math.random() * 200;
+		phi = Math.random() * 2 * Math.PI;
+		node.x = UI_WIDTH / 2 + r * Math.cos(phi);
+		node.y = UI_HEIGHT / 2 + r * Math.sin(phi);
+	});
+	
+	// Define simulation to apply forces to nodes and links
+	const simulation = d3.forceSimulation(nodes)
+		.force("link", d3.forceLink(links).id(d => d.name).distance(SIMULATION_REPEL_DISTANCE).strength(0.1))
+		.force("charge", d3.forceManyBody().strength(-SIMULATION_FORCE_STRENGTH))
+		//.force("center", d3.forceCenter(UI_WIDTH / 2, UI_HEIGHT / 2).strength(-0.01))
+		.on("tick", ticked);
+
+	// Function to update node and link positions during simulation
+	function ticked() {
+		// Constrain nodes within the canvas boundaries
+		node.attr("cx", d => d.x = Math.max(15, Math.min(UI_WIDTH - 15, d.x)))
+			.attr("cy", d => d.y = Math.max(15, Math.min(UI_HEIGHT - 15, d.y)));
+
+		link.attr("x1", d => d.source.x)
+			.attr("y1", d => d.source.y)
+			.attr("x2", d => d.target.x)
+			.attr("y2", d => d.target.y);
+		
+		node.attr("transform", d => `translate(${d.x},${d.y})`);
+	}
+
+	// Function to handle node drag start
+	function dragstarted(event, d) {
+		if (!event.active) simulation.alphaTarget(0.3).restart();
+		d.fx = d.x;
+		d.fy = d.y;
+	}
+
+	// Function to handle node drag
+	function dragged(event, d) {
+		d.fx = event.x;
+		d.fy = event.y;
+	}
+
+	// Function to handle node drag end
+	function dragended(event, d) {
+		if (!event.active) simulation.alphaTarget(0);
+		if (d.node_type !== NODE_TYPE_PEOPLE) {
+			d.fx = null;
+			d.fy = null;
+		}
+	}
+
+	// Legend
+	const legend = svg.append("g")
+		.attr("class", "legend")
+		.attr("transform", `translate(${UI_WIDTH - 150}, 20)`);
+
+	const legendData = [
+		{ color: NODE_COLOUR_PEOPLE, label: "Person" },
+		{ color: NODE_COLOUR_TOPIC, label: "Topic" },
+		{ color: NODE_COLOUR_INSTITUTION, label: "Institution" }
+	];
+
+	const legendItem = legend.selectAll(".legend-item")
+		.data(legendData)
+		.enter().append("g")
+		.attr("class", "legend-item")
+		.attr("transform", (d, i) => `translate(0, ${i * 20})`);
+
+	legendItem.append("rect")
+		.attr("x", 0)
+		.attr("width", 18)
+		.attr("height", 18)
+		.attr("fill", d => d.color);
+
+	legendItem.append("text")
+		.attr("x", 25)
+		.attr("y", 9)
+		.attr("dy", ".35em")
+		.text(d => d.label);
+
+} catch (error) {
+	console.error('Error fetching people data:', error);
+	alert('Failed to fetch data. Please check the console for details.');
+}
+}
+
+// Execute the fetch functions in sequence
+async function init() {
+	await fetchPeople();
+}
+
+init();
+
+
+</script>
+
+</body>
+</html>

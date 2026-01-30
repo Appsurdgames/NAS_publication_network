@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="robots" content="noindex">
+	<title>NAS Publication Network</title>
+	<script src="https://d3js.org/d3.v6.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f0f0f0;
+		}
+		h1 {
+			text-align: center;
+			color: #333;
+		}
+		#statsContainer {
+			flex: 1;
+			padding: 10px;
+			background-color: white;
+			border: 1px solid #ccc;
+			border-radius: 8px;
+			margin-left: 20px;
+			width: 150px;
+			height: 300px;
+			overflow-y: auto;
+			display: none;
+			float: left;
+		}
+		svg {
+			border: 1px solid black;
+			float: left;
+		}
+		.node circle {
+			stroke: #fff;
+			stroke-width: 0px;
+		}
+		.node text {
+			pointer-events: none;
+			text-anchor: left;
+			display: none;
+		}
+		.link {
+			stroke: #999;
+			/* stroke-width: 1.5; Do not use, because it is overriden */
+		}
+		.tooltip {
+			fill: white;
+			stroke: steelblue;
+			stroke-width: 1px;
+			padding: 5px;
+		}
+		.tooltip text {
+			fill: steelblue;
+			stroke-width: 0px;
+		}
+		.tooltip a {
+			text-decoration: underline;
+			fill: #18A8D5;
+			font-weight: bold;
+		}
+		.legend {
+			font-size: 14px;
+		}
+		.legend rect {
+			stroke-width: 2;
+		}
+		.button-container {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 20px;
+		}
+		.button-container button {
+			margin: 0 5px;
+			padding: 10px 20px;
+			font-size: 16px;
+			cursor: pointer;
+			background-color: #007BFF;
+			color: white;
+			border: none;
+			border-radius: 5px;
+		}
+		.button-container button:hover {
+			background-color: #0056b3;
+		}
+	</style>
+</head>
+<body>
+<h1>NAS Publication Network</h1>
+<div class="button-container">
+	<button id="toggleNames">Show names</button>
+	<button id="toggleUniversityOnly">Show only NAS</button>
+	<button id="downloadGML">Download Network as GML file</button>
+	<button id="downloadBibtex">Download Papers as BibTeX file (in beta)</button>
+	<button id="showStats">Show Statistics</button>
+</div>
+<div id="networkContainer">
+	<div id="output"></div>
+</div>
+<div id="statsContainer">
+	<h3>Statistics</h3>
+	<p id="statsDetails">Please wait for the computation to finish...</p>
+</div>
+
+<script>
+
+// Init: Several global constants
+const NODE_COLOUR_UNI = "#18A8D5"; 		// NAS light-blue
+const NODE_COLOUR_OTHER = "#18D5A3"; 	// light-green
+const NODE_COLOUR_EXUNI = "#D54518"; 	// orange
+const NODE_CLICK_COLOR = "#FF5733";		  // new color on click
+const UI_WIDTH = 1000; 					// size of the UI
+const UI_HEIGHT = 550; 					// size of the UI
+const TOOLTIP_WIDTH = 300; 				// size of the popup
+const TOOLTIP_PADDING = 10; 			// padding of the popup
+const LOCATION_EXCEL_PEOPLE = 'people.xlsx';
+const LOCATION_EXCEL_PAPERS = 'NAS_papers_v4.xlsx';
+const SIMULATION_FORCE_STRENGTH = 20;	// simulation attract strength
+const SIMULATION_REPEL_DISTANCE = 30;	// simulation repel distance
+
+// Declare global variables
+let nodes = [];
+let links = [];
+let uniqueLinks = [];
+let jsonPapers = [];
+let currentZoomTransform = d3.zoomIdentity;
+let isNodeNamesVisible = false;
+let isUniversityOnly = false;
+
+// Fetch the Excel file containing the people
+async function fetchPeople() {
+try {
+	const response = await fetch(LOCATION_EXCEL_PEOPLE);
+	if (!response.ok) {
+		throw new Error('Failed to fetch people data from ' + LOCATION_EXCEL_PEOPLE);
+	}
+	const arrayBuffer = await response.arrayBuffer();
+	const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+	const firstSheetName = workbook.SheetNames[0];
+	const worksheet = workbook.Sheets[firstSheetName];
+	nodes = XLSX.utils.sheet_to_json(worksheet);
+	nodes.forEach((person, i) => {
+		person.id = 10000 + i;
+		if (person.position != "former") {
+			person.isUniversity = 1;
+		} else {
+			person.isUniversity = 2;
+			person.institutions = 'Previous NAS, current unknown';
+		}
+	});
+	console.log("Nodes orig:", nodes);
+} catch (error) {
+	console.error('Error fetching people data:', error);
+	alert('Failed to fetch data. Please check the console for details.');
+}
+}
+
+
+// Fetch and process the papers data
+async function fetchPapers() {
+try {
+	const response = await fetch(LOCATION_EXCEL_PAPERS);
+	if (!response.ok) {
+		throw new Error('Failed to fetch papers data');
+	}
+	const arrayBuffer = await response.arrayBuffer();
+	const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+	const firstSheetName = workbook.SheetNames[0];
+	const worksheet = workbook.Sheets[firstSheetName];
+	jsonPapers = XLSX.utils.sheet_to_json(worksheet);
+
+	// Step 2: Add authorList property to jsonPapers
+	jsonPapers.forEach(paper => {
+		paper.authorList = paper.authors.split(',').map(author => author.trim());
+	});
+	console.log('Loaded Papers:', jsonPapers);
+
+	// Step 3: Create node list
+	const tempAuthors = jsonPapers.flatMap(paper => paper.authorList);
+	const strAuthors = [...new Set(tempAuthors)];
+	const nodesToAdd = strAuthors.map((str, index) => ({ id: index, name: str }));
+	console.log("Nodes to add: ", nodesToAdd);
+	console.log(nodes);
+	nodesToAdd.forEach(node => {
+		if (!nodes.some(n => n.name_abbrev === node.name)) {
+			nodes.push({
+				id: node.id,
+				isUniversity: 0,
+				name_abbrev: node.name,
+				url: '#',
+				institutions: 'unknown',
+				position: '#'
+			});
+		}
+	});
+
+	// Assign papers to authors (nodes)
+	nodes.forEach(node => {
+		node.numPapers = 0;
+		node.paperList = [];
+		jsonPapers.forEach(paper => {
+			if (paper.authorList.includes(node.name_abbrev)) {
+				node.paperList.push(paper);
+				node.numPapers += 1;
+			}
+		});
+	});
+	console.log('Nodes before removing:', nodes);
+
+	// Remove nodes without papers
+	//nodes = nodes.filter(node => node.numPapers > 0);
+	//console.log('Nodes after removing:', nodes);
+
+	// Step 4: Get (unique) links
+	links = [];
+	uniqueLinks = [];
+	const uniqueLinksSet = new Set();
+	nodes.forEach(node => {
+		jsonPapers.forEach(paper => {
+			if (paper.authorList.includes(node.name_abbrev)) {
+				paper.authorList.forEach(paperauthor => {
+					if (paperauthor !== node.name_abbrev) {
+						const authorNode = nodes.find(n => n.name_abbrev === paperauthor);
+						if (authorNode) {
+							links.push({ source: node, target: authorNode });
+
+							// for unique links
+							const linkKey = [node.name_abbrev, authorNode.name_abbrev].sort().join("-");
+							if (!uniqueLinksSet.has(linkKey)) {
+								uniqueLinksSet.add(linkKey);
+								uniqueLinks.push({ source: node, target: authorNode });
+							}
+						}
+					}
+				});
+			}
+		});
+	});
+	console.log('Links:', links);
+
+	// Step 5: Calculate the degree of each node
+	const degreeMap = {};
+	uniqueLinks.forEach(link => {
+		degreeMap[link.source.name_abbrev] = (degreeMap[link.source.name_abbrev] || 0) + 1;
+		degreeMap[link.target.name_abbrev] = (degreeMap[link.target.name_abbrev] || 0) + 1;
+	});
+	nodes.forEach(node => {
+		node.degree = degreeMap[node.name_abbrev] || 0;
+	});
+
+	// Step 6: Show graph
+	const svg = d3.select("#output").append("svg")
+		.attr("width", UI_WIDTH)
+		.attr("height", UI_HEIGHT);
+
+	// Define node size based on number of papers
+	const radiusScale = d3.scaleLinear()
+		.domain([0, d3.max(nodes, d => d.numPapers)])
+		.range([5, 25]);
+
+	// Define node colour
+	function nodeSetColour(d) {
+		if (d.isSelected) return NODE_CLICK_COLOR;
+		switch(d.isUniversity) {
+			case 1:
+				return NODE_COLOUR_UNI;
+				break;
+			case 2:
+				return NODE_COLOUR_EXUNI;
+				break;
+			default:
+				return NODE_COLOUR_OTHER;
+				break;
+		}
+	}
+
+	// For zooming
+	const zoomContainer = svg.append("g");
+	svg.call(d3.zoom().on("zoom", function (event) {
+		currentZoomTransform = event.transform;
+		zoomContainer.attr("transform", event.transform);
+		zoomContainer.selectAll("circle")
+			.attr("r", d => radiusScale(d.numPapers) / event.transform.k);
+		zoomContainer.selectAll("line")
+			.attr("stroke-width", 1.5 / event.transform.k);
+		zoomContainer.selectAll("text")
+			.style("font-size", `${12 / event.transform.k}px`)
+			.attr("x", d => (5 + radiusScale(d.numPapers)) / event.transform.k)
+			.attr("y", d => (2) / event.transform.k);
+	}));
+
+	// Draw links
+	const link = zoomContainer.selectAll(".link")
+		.data(uniqueLinks)
+		.enter().append("line")
+		.attr("class", "link");
+
+	// Draw nodes
+	const node = zoomContainer.selectAll(".node")
+		.data(nodes)
+		.enter().append("g")
+		.attr("class", "node")
+		.attr("isSelected", false)
+		.call(d3.drag()
+			.on("start", dragstarted)
+			.on("drag", dragged)
+			.on("end", dragended));
+	
+	node.append("circle")
+		.attr("r", d => radiusScale(d.numPapers))
+		.attr("fill", nodeSetColour);
+
+	const nodeText = node.append("text")
+		.attr("dy", "0.3em")
+		.attr("x", d => (5 + radiusScale(d.numPapers)))
+		.attr("y", d => 2)
+		.text(d => d.name_abbrev)
+		.style("display", isNodeNamesVisible ? "block" : "none")
+		.style("font-size", "12px");
+	
+	// Function to highlight a node
+	function nodeHighlight(d) {
+		d.isSelected = true;
+		node.select("circle").attr("fill", nodeSetColour);
+	}
+	
+	function nodeRemoveHighlights() {
+		nodes.forEach(node => node.isSelected = false);
+		node.attr("isSelected", false);
+		node.select("circle").attr("fill", nodeSetColour);
+	}
+
+	// Popup (also known as tooltip)
+	let tip;
+
+	// Hide tooltip on click outside the nodes
+	svg.on("click", function() {
+		if (tip) tip.remove();
+		nodeRemoveHighlights();
+	});
+
+	// Show tooltip on node click
+	node.on("click", function(event, d) {
+		event.stopPropagation();
+		console.log("Clicked on node " + d.name_abbrev);
+
+		// Remove old tip (if it exists)
+		if (tip) tip.remove();
+		
+		// Remove old highlights
+		nodeRemoveHighlights();
+		
+		// Highlight node
+		nodeHighlight(d);
+		
+		// For zooming
+		const [x, y] = currentZoomTransform.apply([d.x, d.y]);
+
+		// Add the new tooltip
+		tip = svg.append("g")
+			.attr("class", "tooltip")
+			.attr("transform", `translate(${x},${y})`);
+
+		// Create the box for the tooltip
+		const rect = tip.append("rect");
+
+		// Content of the tooltip: Name, Affiliation, papers, degree
+		let val = 1;
+		const nameText = tip.append("text")
+			.attr("dy", `${val}em`)
+			.attr("x", 5);
+		val += 1;
+
+		if (d.isUniversity == 1) {
+			nameText.append("tspan")
+				.text("Name: ");
+
+			nameText.append("tspan")
+				.attr("class", "hyperlink")
+				.append("a")
+				.attr("href", d.url)
+				.attr("target", "_blank")
+				.text(d.name); // Show full name for given members
+		} else {
+			nameText.append("tspan")
+				.text("Name: " + d.name_abbrev);
+		}
+
+		tip.append("text")
+			.text("Affiliation: " + d.institutions)
+			.attr("dy", `${val}em`)
+			.attr("x", 5);
+		val += 1;
+		
+		if (d.isUniversity == 1) {
+			tip.append("text")
+			.text("Position: " + d.position)
+			.attr("dy", `${val}em`)
+			.attr("x", 5);
+			val += 1;
+		}
+		
+		tip.append("text")
+			.text("Number of papers: " + d.numPapers)
+			.attr("dy", `${val}em`)
+			.attr("x", 5);
+		val += 1;
+
+		tip.append("text")
+			.text("Number of collaborators: " + d.degree)
+			.attr("dy", `${val}em`)
+			.attr("x", 5);
+		val += 2;
+
+		tip.append("text")
+			.text("Last papers:")
+			.attr("dy", `${val}em`)
+			.attr("x", 5);
+		val += 1;
+		
+		// Show last 3 papers + DOIs
+		const lastPapers = d.paperList.slice(0, 3);
+		lastPapers.forEach((paper, index) => {
+			let s = `${index + 1}. ${paper.title} (${paper.year}) by ${paper.authors}`;
+			let s2 = wrap(s, TOOLTIP_WIDTH - TOOLTIP_PADDING);
+			
+			s2.forEach((text, index2) => {
+				tip.append("text")
+					.text(text)
+					.attr("dy", `${val + index2}em`)
+					.attr("x", 5);
+			});
+			val += s2.length;
+			
+			// Add DOI
+			if (typeof paper.doi !== 'undefined') {
+				const doiUrl = tip.append("text")
+					.attr("dy", `${val}em`)
+					.attr("x", 5);
+				doiUrl.append("tspan")
+					.attr("class", "hyperlink")
+					.append("a")
+					.attr("href", "https://doi.org/" + paper.doi)
+					.attr("target", "_blank")
+					.text("DOI")
+					.attr("dy", `${val}em`)
+					.attr("x", 5);
+				val += 1;
+			}
+		});
+
+		// Set the size of the tooltip
+		const bbox = tip.node().getBBox();
+		rect.attr("width", Math.min(bbox.width + TOOLTIP_PADDING, TOOLTIP_WIDTH))
+			.attr("height", bbox.height + TOOLTIP_PADDING);
+		
+		// Ensure that tooltip does not exceed given space
+		const x2 = Math.max(TOOLTIP_PADDING, Math.min(UI_WIDTH - TOOLTIP_WIDTH - TOOLTIP_PADDING, x));
+		const y2 = Math.max(TOOLTIP_PADDING, Math.min(UI_HEIGHT - bbox.height - TOOLTIP_PADDING, y));
+		tip.attr("transform", `translate(${x2},${y2})`);
+	});
+
+	// Define simulation to apply forces to nodes and links
+	const simulation = d3.forceSimulation(nodes)
+		.force("link", d3.forceLink(uniqueLinks).distance(SIMULATION_REPEL_DISTANCE).strength(1))
+		.force("charge", d3.forceManyBody().strength(-SIMULATION_FORCE_STRENGTH))
+		.force("center", d3.forceCenter(UI_WIDTH / 2, UI_HEIGHT / 2).strength(1))
+		.on("tick", ticked);
+
+	// Function to update node and link positions during simulation
+	function ticked() {
+		// Constrain nodes within the canvas boundaries
+		node.attr("cx", d => d.x = Math.max(15, Math.min(UI_WIDTH - 15, d.x)))
+			.attr("cy", d => d.y = Math.max(15, Math.min(UI_HEIGHT - 15, d.y)))
+			.attr("transform", positionNode);
+
+		link.attr("x1", d => d.source.x)
+			.attr("y1", d => d.source.y)
+			.attr("x2", d => d.target.x)
+			.attr("y2", d => d.target.y);
+
+		node.attr("transform", d => `translate(${d.x},${d.y})`);
+	}
+
+	function positionNode(d) {
+		return `translate(${d.x},${d.y})`;
+	}
+
+	// Function to handle node drag start
+	function dragstarted(event, d) {
+		if (!event.active) simulation.alphaTarget(0.3).restart();
+		d.fx = d.x;
+		d.fy = d.y;
+	}
+
+	// Function to handle node drag
+	function dragged(event, d) {
+		d.fx = event.x;
+		d.fy = event.y;
+	}
+
+	// Function to handle node drag end
+	function dragended(event, d) {
+		if (!event.active) simulation.alphaTarget(0);
+		if (d.id !== 1) {
+			d.fx = null;
+			d.fy = null;
+		}
+	}
+
+	// Legend
+	const legend = svg.append("g")
+		.attr("class", "legend")
+		.attr("transform", `translate(${UI_WIDTH - 200}, 20)`);
+
+	const legendData = [
+		{ color: NODE_COLOUR_UNI, label: "NAS employees" },
+		{ color: NODE_COLOUR_EXUNI, label: "Former NAS employees" },
+		{ color: NODE_COLOUR_OTHER, label: "Other researchers" }
+	];
+
+	const legendItem = legend.selectAll(".legend-item")
+		.data(legendData)
+		.enter().append("g")
+		.attr("class", "legend-item")
+		.attr("transform", (d, i) => `translate(0, ${i * 20})`);
+
+	legendItem.append("rect")
+		.attr("x", 0)
+		.attr("width", 18)
+		.attr("height", 18)
+		.attr("fill", d => d.color);
+
+	legendItem.append("text")
+		.attr("x", 25)
+		.attr("y", 9)
+		.attr("dy", ".35em")
+		.text(d => d.label);
+		
+	// Button functionality
+	// Button 1: enable the node names
+	document.getElementById("toggleNames").addEventListener("click", function() {
+		isNodeNamesVisible = !isNodeNamesVisible;
+		nodeText.style("display", isNodeNamesVisible ? "block" : "none");
+		this.textContent = isNodeNamesVisible ? "Hide names" : "Show names";
+	});
+	// Button 2: Show all or only university
+	document.getElementById("toggleUniversityOnly").addEventListener("click", function() {
+		isUniversityOnly = !isUniversityOnly;
+		node.style("display", d => (isUniversityOnly && d.isUniversity != 1) ? "none" : null);
+		link.style("display", d => (isUniversityOnly && (d.source.isUniversity != 1 || d.target.isUniversity != 1)) ? "none" : null);
+		this.textContent = isUniversityOnly ? "Show all" : "Show NAS only";
+	});
+	// Button 3: Download network as GML file
+	document.getElementById("downloadGML").addEventListener("click", function() {
+		const gmlData = generateGML(nodes, links);
+		const asciiData = new TextEncoder('ascii').encode(gmlData);  // Encode data as ASCII
+		const blob = new Blob([asciiData], { type: 'text/plain' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'network.gml';
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+	});
+	// Button 4: Download papers as BibTeX file
+	document.getElementById("downloadBibtex").addEventListener("click", function() {
+		const bibtexData = generateBibTeX(jsonPapers);
+		const asciiData = new TextEncoder('ascii').encode(bibtexData);  // Encode data as ASCII
+		const blob = new Blob([asciiData], { type: 'text/plain' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'papers.bib';
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+	});
+	// Button 5: Show Statistics Button
+	d3.select("#showStats").on("click", function () {
+		const statsContainer = d3.select("#statsContainer");
+		const isVisible = statsContainer.style("display") === "block";
+		statsContainer.style("display", isVisible ? "none" : "block");
+		
+		this.textContent = isVisible ? "Show statistics" : "Hide statistics";
+	});
+
+
+} catch (error) {
+	console.error('Error processing papers data:', error);
+	alert('Failed to process paper data. Please check the console for details.');
+}
+}
+
+// Function to calculate statistics using asynchronous Web Worker
+async function calculateStatistics() {
+    return new Promise((resolve, reject) => {
+        // Create a new Web Worker
+        const worker = new Worker('worker.js');
+
+        // Set up message handler for the worker's response
+        worker.onmessage = function(e) {
+
+            // Update the statistics display
+			console.log('Output from asynchronous statistics calculator', e.data);
+            let content = `Number of nodes: ${e.data.numNodes}<br>`;
+            content += `Number of links: ${e.data.numLinks}<br>`;
+			content += `Number of unique links: ${e.data.numUniqueLinks}<br>`;
+			content += `Number of papers: ${e.data.numPapers}<br>`;
+            content += `Clustering Coefficient: ${e.data.clusteringCoefficient.toFixed(3)}<br>`;
+			//content += `Assortativity: ${e.data.assortativity.toFixed(3)}`;
+			document.getElementById('statsDetails').innerHTML = content;
+            
+            // Clean up and resolve the promise
+            worker.terminate();
+            resolve();
+        };
+
+        // Set up error handler
+        worker.onerror = function(error) {
+            console.error('Worker error:', error);
+            worker.terminate();
+            reject(error);
+        };
+
+        // Post the data to the worker
+        worker.postMessage({ nodes, links, uniqueLinks, jsonPapers });
+    });
+}
+
+// Execute the fetch functions in sequence
+async function init() {
+	await fetchPeople();
+	await fetchPapers();
+	await calculateStatistics();
+}
+
+init();
+
+// Remove accents
+function removeAccents(str) {
+	return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Convert the nodes and links into the GML format
+function generateGML(nodes, links) {
+	
+	let gml = 'graph [\n';
+	nodes.forEach(node => {
+		gml += `  node [\n    id ${node.id}\n    label "${removeAccents(node.name_abbrev).replace(/"/g, '\\"')}"\n  ]\n`;
+	});
+	links.forEach(link => {
+		gml += `  edge [\n    source ${link.source.id}\n    target ${link.target.id}\n  ]\n`;
+	});
+	gml += ']';
+	return gml;
+}
+
+// Function to convert accented characters to LaTeX escape sequences
+function convertAccentsBibTex(str) {
+    if (!str) return ''; // Handle empty or undefined strings
+    // List of accented characters and their LaTeX equivalents using the {\"a} notation
+    const accents = {
+        'á': '{\\\'a}', 'à': '{\\\'a}', 'â': '{\\^a}', 'ä': '{\\\"a}', 'ã': '{\\~a}', 'å': '{\\r{a}}', 'ă': '{\\u{a}}',
+        'é': '{\\\'e}', 'è': '{\\\'e}', 'ê': '{\\^e}', 'ë': '{\\\"e}',
+        'í': '{\\\'i}', 'ì': '{\\\'i}', 'î': '{\\^i}', 'ï': '{\\\"i}',
+        'ó': '{\\\'o}', 'ò': '{\\\'o}', 'ô': '{\\^o}', 'ö': '{\\\"o}', 'õ': '{\\~o}',
+        'ú': '{\\\'u}', 'ù': '{\\\'u}', 'û': '{\\^u}', 'ü': '{\\\"u}',
+        'ç': '{\\c{c}}', 'ć': '{\\c{c}}', 'ñ': '{\\~n}', 'š': '{\\v{s}}',
+        'Á': '{\\\'A}', 'À': '{\\\'A}', 'Â': '{\\^A}', 'Ä': '{\\\"A}', 'Ã': '{\\~A}', 'Å': '{\\r{A}}',
+        'É': '{\\\'E}', 'È': '{\\\'E}', 'Ê': '{\\^E}', 'Ë': '{\\\"E}',
+        'Í': '{\\\'I}', 'Ì': '{\\\'I}', 'Î': '{\\^I}', 'Ï': '{\\\"I}',
+        'Ó': '{\\\'O}', 'Ò': '{\\\'O}', 'Ô': '{\\^O}', 'Ö': '{\\\"O}', 'Õ': '{\\~O}',
+        'Ú': '{\\\'U}', 'Ù': '{\\\'U}', 'Û': '{\\^U}', 'Ü': '{\\\"U}',
+        'Ç': '{\\c{C}}', 'Ñ': '{\\~N}',
+        'ε': '{\\varepsilon}', 'ﬂ': '{\\fl}', '𝑑': '{\\mathit{d}}',
+    };
+    return str.replace(/[áàâäãåăéèêëíìîïóòôöõúùûüçćñšÁÀÂÄÃÅÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜÇÑεﬂ𝑑]/g, char => accents[char] || char);
+}
+
+function countStringOccurrences(str, substring) {
+    // Check for an empty substring
+    if (substring.length === 0) return 0;
+    
+    // Split the string by the substring and subtract 1
+    return str.split(substring).length - 1;
+}
+
+function reverseAuthorName(name) {
+	// Changes author name from A.B. Jones to Jones, A. B.
+    let parts = name.split(' ');
+    if (parts.length < 2 || countStringOccurrences(name, ".") == 0) {
+		console.log("Potential ERROR with name " + name);
+		return name;
+	}
+
+    let lastName = parts.slice(1).join(' ').trim();
+    let initials = parts[0].replace('.', '. ').trim();
+    return `${lastName}, ${initials}`;
+}
+
+
+// Convert papers to BibTeX format
+function generateBibTeX(papers) {
+    let bibtex = '';
+    
+    papers.forEach(paper => {
+	
+		// Get paper identifier
+		const firstAuthor = removeAccents(paper.authors.split(',')[0].trim()); // Assuming authors are separated by commas
+		const firstAuthorLastName = firstAuthor.split(' ').pop().toLowerCase(); // Get the last name and convert to lower case
+		const firstWordInTitle = paper.title.split(' ')[0].toLowerCase(); // Get the first word and convert to lower case
+		const paperTag = `${firstAuthorLastName}${paper.year}${firstWordInTitle}`;
+		const authors = paper.authors.split(',').map(author => author.trim()).map(reverseAuthorName).join(' and ');
+
+		// For conferences
+		if (paper.article_type === 'conference') {
+			bibtex += `@inproceedings{${paperTag},\n`;
+			bibtex += `  author = {${convertAccentsBibTex(authors)}},\n`;
+			bibtex += `  editor = {${convertAccentsBibTex(paper.editor) || ''}},\n`;
+			bibtex += `  title = {{${convertAccentsBibTex(paper.title)}}},\n`;
+			bibtex += `  booktitle = {${convertAccentsBibTex(paper.journal) || ''}},\n`;
+			bibtex += `  year = {${paper.year}},\n`;
+			bibtex += `  publisher = {${paper.publisher || ''}},\n`;
+			bibtex += `  pages = {${paper.pages || ''}},\n`;
+			bibtex += `  doi = {${paper.doi || ''}},\n`;
+			bibtex += `}\n\n`;
+		} else {
+			bibtex += `@article{${paperTag},\n`;
+			bibtex += `  author = {${convertAccentsBibTex(authors)}},\n`;
+			bibtex += `  title = {{${convertAccentsBibTex(paper.title)}}},\n`;
+			bibtex += `  journal = {{${convertAccentsBibTex(paper.journal) || 'Unknown'}}},\n`;
+			bibtex += `  year = {${paper.year}},\n`;
+			bibtex += `  volume = {${paper.volume || ''}},\n`;
+			bibtex += `  issue = {${paper.issue || ''}},\n`;
+			bibtex += `  pages = {${paper.pages || ''}},\n`;
+			bibtex += `  doi = {${paper.doi || ''}},\n`;
+			bibtex += `}\n\n`;
+		}
+    });
+
+    return bibtex;
+}
+
+// Function to wrap text within a specified width
+function wrap(text, maxWidth) {
+	const words = text.split(/\s+/);
+	let line = '';
+	let lines = [];
+
+	words.forEach(word => {
+		const testLine = line.length === 0 ? word : `${line} ${word}`;
+		const testWidth = testLine.length * 8; // Assuming approximate character width
+
+		// If adding word exceeds width, push current line and start new line
+		if (testWidth > maxWidth) {
+			lines.push(line);
+			line = word;
+		} else {
+			line = testLine;
+		}
+	});
+	lines.push(line);
+	return lines;
+}
+
+
+</script>
+</body>
+</html>
