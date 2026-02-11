@@ -4,7 +4,7 @@ This repository contains a publication network related to the NAS department at 
 
 ## Content
 
-- data/\_people.xlsx: list of current and former employees of the NAS department.
+- data/source\_people.xlsx: list of current and former employees of the NAS department.
 Also includes position, topic, institution and url.
 
 - data/source\_papers.xlsx: list of papers written in the NAS department.
