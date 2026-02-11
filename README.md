@@ -70,9 +70,9 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 
 5a. Create new tab with table of publications. Columns: Authors, Title, DOI/URL (Roberto)
 
-5b. Make network less cluttered (Mattia)
+5b. Make network less cluttered (Matteo)
 
-5c. Make separate detail page (Massimo)
+5c. Make separate detail pane on publications page (Massimo)
 
 6. Discuss next steps
 
