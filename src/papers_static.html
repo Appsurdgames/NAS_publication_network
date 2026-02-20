@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="robots" content="noindex">
+	<title>NAS Publication Network – Static View</title>
+	<script src="https://d3js.org/d3.v6.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<style>
+		*, *::before, *::after { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			font-family: 'Segoe UI', Arial, sans-serif;
+			background: #f7f9fc;
+			color: #333;
+		}
+
+		h1 {
+			text-align: center;
+			margin: 8px 0 6px;
+			font-size: 20px;
+			color: #1a2a3a;
+			letter-spacing: 0.5px;
+		}
+
+		/* ── Controls bar ───────────────────────────── */
+		#controls {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			gap: 10px 18px;
+			padding: 10px 20px;
+			background: #fff;
+			border-bottom: 1px solid #dde3ec;
+		}
+
+		.ctrl-group {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 13px;
+		}
+
+		.ctrl-group label { color: #555; white-space: nowrap; }
+
+		input[type=range] {
+			width: 110px;
+			accent-color: #18A8D5;
+		}
+
+		.badge {
+			display: inline-block;
+			min-width: 22px;
+			text-align: center;
+			background: #18A8D5;
+			color: #fff;
+			border-radius: 10px;
+			padding: 0 5px;
+			font-size: 12px;
+			font-weight: 600;
+		}
+
+		button {
+			padding: 6px 14px;
+			font-size: 13px;
+			cursor: pointer;
+			background: #18A8D5;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			transition: background 0.15s;
+		}
+		button:hover { background: #1080a0; }
+		button.active { background: #D54518; }
+
+		#searchBox {
+			padding: 5px 10px;
+			font-size: 13px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			width: 160px;
+		}
+		#searchBox:focus { outline: none; border-color: #18A8D5; }
+
+		/* ── Autocomplete dropdown ──────────────────── */
+		#searchWrapper { position: relative; }
+		#searchDropdown {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: #fff;
+			border: 1px solid #b0c4d8;
+			border-top: none;
+			border-radius: 0 0 6px 6px;
+			max-height: 200px;
+			overflow-y: auto;
+			z-index: 200;
+			display: none;
+			box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+			min-width: 160px;
+		}
+		.dropdown-item {
+			padding: 6px 10px;
+			cursor: pointer;
+			font-size: 13px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.dropdown-item:hover { background: #e8f4f8; }
+		.dropdown-item .match { font-weight: bold; color: #18A8D5; }
+
+		/* ── Main canvas ────────────────────────────── */
+		#chart {
+			display: flex;
+			justify-content: center;
+			padding: 4px 10px;
+		}
+
+		svg { display: block; overflow: hidden; }
+
+		/* Links */
+		.link {
+			fill: none;
+			stroke: #b0bec5;
+			transition: opacity 0.15s;
+		}
+		.link.faded { opacity: 0.04; }
+		.link.highlighted { stroke: #FF5733; stroke-width: 2px; opacity: 1 !important; }
+
+		/* Nodes */
+		.node-circle {
+			stroke: #fff;
+			stroke-width: 1.5px;
+			cursor: pointer;
+			transition: opacity 0.15s, filter 0.15s;
+		}
+		.node-circle.faded { opacity: 0.15; }
+		/* collaborators highlighted in orange */
+		.node-circle.highlighted { stroke: #E87840; stroke-width: 2px; }
+		/* the clicked node itself — same colour, thicker ring */
+		.node-circle.selected { stroke: #E87840; stroke-width: 3.5px; }
+
+		.node-label {
+			pointer-events: none;
+			font-size: 10px;
+			fill: #1a2a3a;
+			transition: opacity 0.15s;
+		}
+		.node-label.faded { opacity: 0.1; }
+
+		/* Ring labels */
+		.ring-label {
+			font-size: 12px;
+			fill: #1a2a3a;
+			font-weight: 700;
+			font-style: normal;
+			pointer-events: none;
+			text-shadow: 0 0 4px #f7f9fc, 0 0 4px #f7f9fc;
+		}
+
+		/* ── Tooltip ────────────────────────────────── */
+		#tooltip {
+			position: fixed;
+			display: none;
+			pointer-events: none;
+			transition: border-color 0.15s;
+			background: #fff;
+			border: 1px solid #b0c4d8;
+			border-radius: 8px;
+			padding: 12px 14px;
+			font-size: 12.5px;
+			line-height: 1.7;
+			box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+			max-width: 280px;
+			z-index: 100;
+		}
+		#tooltip strong { color: #1a2a3a; font-size: 13.5px; }
+		#tooltip a { color: #18A8D5; text-decoration: none; font-weight: 600; }
+		#tooltip a:hover { text-decoration: underline; }
+		#tooltip .papers-list { margin-top: 6px; border-top: 1px solid #eee; padding-top: 6px; }
+		#tooltip .paper-item { margin-bottom: 4px; color: #555; font-size: 11.5px; }
+		#tooltip.pinned {
+			width: 260px;
+			max-width: 260px;
+			border-color: #18A8D5;
+			border-width: 2px;
+			pointer-events: auto;
+			cursor: move;
+			user-select: none;
+			padding-right: 28px;
+		}
+		#tooltip-close {
+			position: absolute;
+			top: 6px; right: 8px;
+			background: none;
+			border: none;
+			font-size: 16px;
+			line-height: 1;
+			color: #aaa;
+			cursor: pointer;
+			padding: 0 2px;
+		}
+		#tooltip-close:hover { color: #D54518; }
+
+		/* ── Zoom cursor ─────────────────────────────── */
+		#chart svg { cursor: grab; }
+		#chart svg:active { cursor: grabbing; }
+
+		/* ── Legend ─────────────────────────────────── */
+		.legend { font-size: 12px; }
+		.legend-dot { border-radius: 50%; display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: middle; }
+
+		/* ── Loading spinner ─────────────────────────── */
+		#loading {
+			text-align: center;
+			padding: 60px;
+			font-size: 16px;
+			color: #888;
+		}
+	</style>
+</head>
+<body>
+
+<h1>NAS Publication Network</h1>
+
+<div id="controls">
+	<div class="ctrl-group">
+		<label>Min. shared papers:</label>
+		<input type="range" id="linkThreshold" min="1" max="10" value="1">
+		<span class="badge" id="linkThresholdVal">1</span>
+	</div>
+	<div class="ctrl-group">
+		<label>Min. papers per author:</label>
+		<input type="range" id="nodeThreshold" min="1" max="15" value="1">
+		<span class="badge" id="nodeThresholdVal">1</span>
+	</div>
+	<div class="ctrl-group">
+		<div id="searchWrapper">
+			<input type="text" id="searchBox" placeholder="Search author…" autocomplete="off">
+			<div id="searchDropdown"></div>
+		</div>
+	</div>
+	<button id="toggleLabels">Show labels</button>
+	<button id="toggleNASOnly">NAS only</button>
+	<button id="resetHighlight">Reset</button>
+</div>
+
+<div id="loading">Loading data…</div>
+<div id="chart"></div>
+<div id="tooltip"></div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────
+const NODE_COLOUR_UNI    = "#18A8D5";   // NAS blue
+const NODE_COLOUR_EXUNI  = "#D54518";   // former NAS orange
+const NODE_COLOUR_OTHER  = "#52c9a4";   // external green
+const LOCATION_EXCEL_PEOPLE = '../data/source_people.xlsx';
+const LOCATION_EXCEL_PAPERS = '../data/source_papers.xlsx';
+
+const WIDTH  = 1300;
+const HEIGHT = 900;
+const CX = WIDTH / 2;
+const CY = HEIGHT / 2;
+// Radii for the three concentric rings
+const R_NAS    = 180;
+const R_FORMER = 300;
+const R_EXT    = 420;
+
+// ── State ──────────────────────────────────────────────────────────
+let nodes = [], jsonPapers = [], uniqueLinks = [];
+let labelsVisible = false;
+let nasOnly = false;
+let pinnedNode = null;
+
+// ── Global tooltip reference (persists across redraws) ────────────
+const tooltip = document.getElementById('tooltip');
+
+// ── Tooltip follows mouse (registered once, not inside draw) ──────
+document.addEventListener('mousemove', e => {
+	if (!pinnedNode && tooltip.style.display === 'block') {
+		positionTooltip(e);
+	}
+	if (tooltipDrag.active) {
+		tooltip.style.left = (tooltipDrag.origLeft + e.clientX - tooltipDrag.startX) + 'px';
+		tooltip.style.top  = (tooltipDrag.origTop  + e.clientY - tooltipDrag.startY) + 'px';
+	}
+});
+
+document.addEventListener('mouseup', () => { tooltipDrag.active = false; });
+
+function positionTooltip(e) {
+	const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+	let tx = e.clientX + 14, ty = e.clientY + 14;
+	if (tx + tw > window.innerWidth  - 10) tx = e.clientX - tw - 14;
+	if (ty + th > window.innerHeight - 10) ty = e.clientY - th - 14;
+	tooltip.style.left = tx + 'px';
+	tooltip.style.top  = ty + 'px';
+}
+
+// ── Draggable pinned tooltip ──────────────────────────────────────
+const tooltipDrag = { active: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
+tooltip.addEventListener('mousedown', function(e) {
+	if (!tooltip.classList.contains('pinned')) return;
+	// Don't drag if clicking a link
+	if (e.target.tagName === 'A') return;
+	tooltipDrag.active = true;
+	tooltipDrag.startX  = e.clientX;
+	tooltipDrag.startY  = e.clientY;
+	tooltipDrag.origLeft = parseInt(tooltip.style.left) || 0;
+	tooltipDrag.origTop  = parseInt(tooltip.style.top)  || 0;
+	e.preventDefault();
+});
+
+// ── Dismiss when clicking outside #chart (and outside tooltip) ────
+let recentPin = false; // guard: ignore the document click fired right after a pin
+document.addEventListener('click', function(e) {
+	const chart    = document.getElementById('chart');
+	const controls = document.getElementById('controls');
+	if (tooltip.style.display === 'none') return;
+	if (recentPin) return;                         // click came from a pin action: ignore
+	if (tooltip.contains(e.target)) return;        // click inside tooltip: ignore
+	if (chart.contains(e.target)) return;          // click inside chart: handled by SVG
+	if (controls.contains(e.target)) return;       // click inside controls: ignore
+	// Outside all interactive areas → dismiss
+	if (window.__networkApi) window.__networkApi.clearAll();
+});
+
+// ── Data loading ───────────────────────────────────────────────────
+async function fetchPeople() {
+	const res = await fetch(LOCATION_EXCEL_PEOPLE);
+	if (!res.ok) throw new Error('Failed to fetch people');
+	const buf = await res.arrayBuffer();
+	const wb  = XLSX.read(new Uint8Array(buf), { type: 'array' });
+	const ws  = wb.Sheets[wb.SheetNames[0]];
+	nodes = XLSX.utils.sheet_to_json(ws);
+	nodes.forEach((p, i) => {
+		p.id = 10000 + i;
+		p.isUniversity = (p.position !== 'former') ? 1 : 2;
+		if (p.isUniversity === 2) p.institutions = 'Previous NAS, current unknown';
+	});
+}
+
+async function fetchPapers() {
+	const res = await fetch(LOCATION_EXCEL_PAPERS);
+	if (!res.ok) throw new Error('Failed to fetch papers');
+	const buf = await res.arrayBuffer();
+	const wb  = XLSX.read(new Uint8Array(buf), { type: 'array' });
+	const ws  = wb.Sheets[wb.SheetNames[0]];
+	jsonPapers = XLSX.utils.sheet_to_json(ws);
+	jsonPapers.forEach(p => {
+		p.authorList = p.authors.split(',').map(a => a.trim());
+	});
+
+	// Add external author nodes
+	const extNames = [...new Set(jsonPapers.flatMap(p => p.authorList))];
+	extNames.forEach((name, i) => {
+		if (!nodes.some(n => n.name_abbrev === name)) {
+			nodes.push({ id: i, isUniversity: 0, name_abbrev: name, url: '#', institutions: 'External', position: '' });
+		}
+	});
+
+	// Assign papers
+	nodes.forEach(nd => {
+		nd.numPapers = 0; nd.paperList = [];
+		jsonPapers.forEach(p => {
+			if (p.authorList.includes(nd.name_abbrev)) { nd.paperList.push(p); nd.numPapers++; }
+		});
+	});
+
+	// Build unique weighted links (track co-paper count)
+	const linkMap = {};
+	jsonPapers.forEach(paper => {
+		const al = paper.authorList;
+		for (let i = 0; i < al.length; i++) {
+			for (let j = i + 1; j < al.length; j++) {
+				const key = [al[i], al[j]].sort().join('|||');
+				if (!linkMap[key]) linkMap[key] = { source: al[i], target: al[j], count: 0 };
+				linkMap[key].count++;
+			}
+		}
+	});
+	uniqueLinks = Object.values(linkMap);
+}
+
+// ── Layout ─────────────────────────────────────────────────────────
+function assignPositions() {
+	const nasNodes    = nodes.filter(n => n.isUniversity === 1).sort((a,b) => b.numPapers - a.numPapers);
+	const formerNodes = nodes.filter(n => n.isUniversity === 2).sort((a,b) => b.numPapers - a.numPapers);
+	const extNodes    = nodes.filter(n => n.isUniversity === 0).sort((a,b) => b.numPapers - a.numPapers);
+
+	function placeRing(arr, radius) {
+		arr.forEach((nd, i) => {
+			const angle = (2 * Math.PI * i) / arr.length - Math.PI / 2;
+			nd.x = CX + radius * Math.cos(angle);
+			nd.y = CY + radius * Math.sin(angle);
+			nd.angle = angle;
+			nd.ringRadius = radius;
+		});
+	}
+
+	placeRing(nasNodes,    R_NAS);
+	placeRing(formerNodes, R_FORMER);
+	placeRing(extNodes,    R_EXT);
+}
+
+// ── Resolve source/target references ──────────────────────────────
+function resolveLinks() {
+	const nodeMap = {};
+	nodes.forEach(n => { nodeMap[n.name_abbrev] = n; });
+	uniqueLinks = uniqueLinks
+		.map(l => ({ source: nodeMap[l.source], target: nodeMap[l.target], count: l.count }))
+		.filter(l => l.source && l.target);
+}
+
+// ── Colour helper ──────────────────────────────────────────────────
+function nodeColour(d) {
+	if (d.isUniversity === 1) return NODE_COLOUR_UNI;
+	if (d.isUniversity === 2) return NODE_COLOUR_EXUNI;
+	return NODE_COLOUR_OTHER;
+}
+
+// ── Radius scale ───────────────────────────────────────────────────
+const radiusScale = d3.scaleSqrt().domain([0, 1]).range([3, 16]);
+
+// ── Draw ───────────────────────────────────────────────────────────
+function draw() {
+	// Reset pinned state on every redraw
+	pinnedNode = null;
+	tooltip.style.display = 'none';
+	tooltip.classList.remove('pinned');
+
+	d3.select('#loading').style('display', 'none');
+	d3.select('#chart').selectAll('*').remove();
+
+	const maxPapers = d3.max(nodes, d => d.numPapers) || 1;
+	radiusScale.domain([0, maxPapers]);
+
+	const linkThreshold = +document.getElementById('linkThreshold').value;
+	const nodeThreshold = +document.getElementById('nodeThreshold').value;
+	const search        = document.getElementById('searchBox').value.toLowerCase().trim();
+
+	// Visible node set
+	const visibleNodes = nodes.filter(nd => {
+		if (nd.numPapers < nodeThreshold) return false;
+		if (nasOnly && nd.isUniversity !== 1) return false;
+		return true;
+	});
+	const visibleSet = new Set(visibleNodes.map(n => n.name_abbrev));
+
+	// Visible links
+	const visibleLinks = uniqueLinks.filter(l =>
+		l.count >= linkThreshold &&
+		visibleSet.has(l.source.name_abbrev) &&
+		visibleSet.has(l.target.name_abbrev)
+	);
+
+	const linkStroke = d3.scaleLinear()
+		.domain([1, d3.max(visibleLinks, l => l.count) || 1])
+		.range([0.5, 4]);
+
+	const svg = d3.select('#chart').append('svg')
+		.attr('width',  WIDTH)
+		.attr('height', HEIGHT);
+
+	// ── Transparent background for void-click reset (SVG-sized, stays fixed) ──
+	// Placed directly on svg (not inside zoomContainer) so it never extends
+	// outside the SVG viewport and cannot overlay the controls bar above.
+	svg.append('rect')
+		.attr('x', 0).attr('y', 0)
+		.attr('width', WIDTH).attr('height', HEIGHT)
+		.attr('fill', 'transparent')
+		.on('click', () => {
+			pinnedNode = null;
+			tooltip.style.display = 'none';
+			tooltip.classList.remove('pinned');
+			clearHighlight();
+		});
+
+	// ── Zoom ──
+	const zoomContainer = svg.append('g').attr('class', 'zoom-container');
+	svg.call(d3.zoom()
+		.scaleExtent([0.2, 8])
+		.on('zoom', function(event) {
+			zoomContainer.attr('transform', event.transform);
+		}));
+
+	// ── Ring guide circles ──
+	const ringGuide = zoomContainer.append('g').attr('class', 'rings');
+	[R_NAS, R_FORMER, R_EXT].forEach(r => {
+		ringGuide.append('circle')
+			.attr('cx', CX).attr('cy', CY).attr('r', r)
+			.attr('fill', 'none')
+			.attr('stroke', '#dde3ec')
+			.attr('stroke-dasharray', '4,4')
+			.attr('stroke-width', 1);
+	});
+
+	// Ring label
+	const ringInfo = [
+		{ r: R_NAS,    label: 'NAS' },
+		{ r: R_FORMER, label: 'Former NAS' },
+		{ r: R_EXT,    label: 'External collaborators' },
+	];
+	ringInfo.forEach(({ r, label }) => {
+		zoomContainer.append('text')
+			.attr('class', 'ring-label')
+			.attr('x', CX - r - 8)
+			.attr('y', CY)
+			.attr('text-anchor', 'end')
+			.attr('dominant-baseline', 'middle')
+			.text(label);
+	});
+
+	// ── Links ──
+	const linkSel = zoomContainer.append('g').attr('class', 'links')
+		.selectAll('path')
+		.data(visibleLinks, d => `${d.source.name_abbrev}||${d.target.name_abbrev}`)
+		.enter().append('path')
+		.attr('class', 'link')
+		.attr('d', d => {
+			// Curved path bowing toward center
+			const mx = (d.source.x + d.target.x) / 2;
+			const my = (d.source.y + d.target.y) / 2;
+			const dx = mx - CX, dy = my - CY;
+			const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+			const pull = 0.3;
+			const cx1 = mx - dx * pull;
+			const cy1 = my - dy * pull;
+			return `M${d.source.x},${d.source.y} Q${cx1},${cy1} ${d.target.x},${d.target.y}`;
+		})
+		.attr('stroke-width', d => linkStroke(d.count))
+		.attr('stroke-opacity', d => {
+			const base = Math.max(0.08, Math.min(0.55, 0.1 * d.count));
+			return base;
+		});
+
+	// ── Nodes ──
+	const nodeSel = zoomContainer.append('g').attr('class', 'nodes')
+		.selectAll('g')
+		.data(visibleNodes)
+		.enter().append('g')
+		.attr('class', 'node-g')
+		.attr('transform', d => `translate(${d.x},${d.y})`);
+
+	nodeSel.append('circle')
+		.attr('class', 'node-circle')
+		.attr('r', d => radiusScale(d.numPapers))
+		.attr('fill', nodeColour);
+
+	const labelSel = nodeSel.append('text')
+		.attr('class', 'node-label')
+		.attr('x', d => {
+			const angle = d.angle || 0;
+			const r = radiusScale(d.numPapers) + 3;
+			return r * Math.cos(angle) + (Math.cos(angle) >= 0 ? 2 : -2);
+		})
+		.attr('y', d => {
+			const angle = d.angle || 0;
+			const r = radiusScale(d.numPapers) + 3;
+			return r * Math.sin(angle);
+		})
+		.attr('text-anchor', d => {
+			const angle = d.angle || 0;
+			return Math.cos(angle) >= 0 ? 'start' : 'end';
+		})
+		.attr('dominant-baseline', 'middle')
+		.text(d => d.name_abbrev)
+		.style('display', labelsVisible ? 'block' : 'none');
+
+	// ── Highlight logic ──
+	function buildNeighbourSet(d) {
+		const names = new Set([d.name_abbrev]);
+		visibleLinks.forEach(l => {
+			if (l.source.name_abbrev === d.name_abbrev) names.add(l.target.name_abbrev);
+			if (l.target.name_abbrev === d.name_abbrev) names.add(l.source.name_abbrev);
+		});
+		return names;
+	}
+
+	function applyHighlight(neighbours) {
+		const selectedName = [...neighbours][0];
+		nodeSel.select('circle')
+			.classed('faded',       nd => !neighbours.has(nd.name_abbrev))
+			.classed('highlighted', nd =>  neighbours.has(nd.name_abbrev) && nd.name_abbrev !== selectedName)
+			.classed('selected',    nd =>  nd.name_abbrev === selectedName);
+		nodeSel.select('text')
+			.classed('faded', nd => !neighbours.has(nd.name_abbrev));
+		linkSel
+			.classed('faded',       l => !neighbours.has(l.source.name_abbrev) || !neighbours.has(l.target.name_abbrev))
+			.classed('highlighted', l =>  neighbours.has(l.source.name_abbrev) &&  neighbours.has(l.target.name_abbrev));
+	}
+
+	function clearHighlight() {
+		nodeSel.select('circle').classed('faded', false).classed('highlighted', false).classed('selected', false);
+		nodeSel.select('text').classed('faded', false);
+		linkSel.classed('faded', false).classed('highlighted', false);
+	}
+
+	// ── Tooltip content builder ──
+	function buildTooltipHtml(d, nb) {
+		const lastPapers = d.paperList.slice(0, 3);
+		const papersHtml = lastPapers.map((p, i) => {
+			const doi = p.doi ? ` <a href="https://doi.org/${p.doi}" target="_blank">DOI</a>` : '';
+			return `<div class="paper-item">${i+1}. <em>${p.title}</em> (${p.year})${doi}</div>`;
+		}).join('');
+		return `
+			<strong>${d.isUniversity === 1
+				? `<a href="${d.url}" target="_blank">${d.name || d.name_abbrev}</a>`
+				: d.name_abbrev}</strong><br>
+			${d.institutions ? `<span style="color:#888">${d.institutions}</span><br>` : ''}
+			${d.position && d.isUniversity === 1 ? `Position: ${d.position}<br>` : ''}
+			Papers: <b>${d.numPapers}</b> &nbsp;·&nbsp; Collaborators: <b>${nb.size - 1}</b>
+			<div class="papers-list">${papersHtml || '<span style="color:#aaa">No papers found</span>'}</div>
+		`;
+	}
+
+	// ── Hover: show live tooltip ──
+	nodeSel
+		.on('mouseenter', function(event, d) {
+			if (pinnedNode) return;
+			const nb = buildNeighbourSet(d);
+			applyHighlight(nb);
+			tooltip.innerHTML = buildTooltipHtml(d, nb);
+			tooltip.classList.remove('pinned');
+			tooltip.style.display = 'block';
+			positionTooltip(event);
+		})
+		.on('mousemove', function(event) {
+			if (pinnedNode) return;
+			positionTooltip(event);
+		})
+		.on('mouseleave', function() {
+			if (pinnedNode) return;
+			tooltip.style.display = 'none';
+			clearHighlight();
+		});
+
+	function pinNode(d) {
+		pinnedNode = d;
+		const nb = buildNeighbourSet(d);
+		applyHighlight(nb);
+		tooltip.innerHTML = buildTooltipHtml(d, nb);
+		// Inject close button
+		const closeBtn = document.createElement('button');
+		closeBtn.id = 'tooltip-close';
+		closeBtn.title = 'Close';
+		closeBtn.textContent = '×';
+		closeBtn.addEventListener('click', function(e) {
+			e.stopPropagation();
+			if (window.__networkApi) window.__networkApi.clearAll();
+		});
+		tooltip.appendChild(closeBtn);
+		tooltip.classList.add('pinned');
+		tooltip.style.display = 'block';
+		// Place at left edge of chart, below controls
+		const chartRect = document.getElementById('chart').getBoundingClientRect();
+		tooltip.style.left = (chartRect.left + 14) + 'px';
+		tooltip.style.top  = (chartRect.top  + 14) + 'px';
+	}
+
+	// ── Expose API for autocomplete + external callers ──
+	window.__networkApi = {
+		pinByName(name) {
+			const d = visibleNodes.find(nd => nd.name_abbrev === name);
+			if (d) pinNode(d);
+		},
+		clearAll() {
+			pinnedNode = null;
+			tooltip.style.display = 'none';
+			tooltip.classList.remove('pinned');
+			clearHighlight();
+		}
+	};
+
+	// ── Click: pin tooltip ──
+	nodeSel.on('click', function(event, d) {
+		event.stopPropagation();
+		pinNode(d);
+	});
+
+	// ── SVG background click: unpin and dismiss ──
+	svg.on('click', () => {
+		if (window.__networkApi) window.__networkApi.clearAll();
+	});
+
+	// ── Search highlight ──
+	if (search) {
+		const match = visibleNodes.filter(nd => nd.name_abbrev.toLowerCase().includes(search));
+		if (match.length > 0) {
+			const names = new Set(match.map(m => m.name_abbrev));
+			// also include their neighbours
+			match.forEach(d => buildNeighbourSet(d).forEach(n => names.add(n)));
+			applyHighlight(names);
+		}
+	}
+
+	// ── Legend ──
+	const legend = svg.append('g')
+		.attr('transform', `translate(16, ${HEIGHT - 90})`);
+
+	const legendItems = [
+		{ color: NODE_COLOUR_UNI,   label: 'NAS employees' },
+		{ color: NODE_COLOUR_EXUNI, label: 'Former NAS employees' },
+		{ color: NODE_COLOUR_OTHER, label: 'External researchers' },
+	];
+	legendItems.forEach((item, i) => {
+		const g = legend.append('g').attr('transform', `translate(0,${i * 20})`);
+		g.append('circle').attr('r', 6).attr('cx', 6).attr('cy', 6).attr('fill', item.color);
+		g.append('text').attr('x', 18).attr('y', 10).style('font-size', '12px').text(item.label);
+	});
+
+	// ── Node count badge ──
+	svg.append('text')
+		.attr('x', WIDTH - 12).attr('y', HEIGHT - 10)
+		.attr('text-anchor', 'end')
+		.style('font-size', '11px').style('fill', '#999')
+		.text(`${visibleNodes.length} nodes · ${visibleLinks.length} links shown`);
+}
+
+// ── Controls wiring ────────────────────────────────────────────────
+function redraw() { assignPositions(); resolveLinks(); draw(); }
+
+document.getElementById('linkThreshold').addEventListener('input', function() {
+	document.getElementById('linkThresholdVal').textContent = this.value;
+	draw();
+});
+document.getElementById('nodeThreshold').addEventListener('input', function() {
+	document.getElementById('nodeThresholdVal').textContent = this.value;
+	draw();
+});
+// ── Autocomplete ──────────────────────────────────────────────────
+function populateAutocomplete() {
+	const input    = document.getElementById('searchBox');
+	const dropdown = document.getElementById('searchDropdown');
+
+	function showDropdown(query) {
+		if (!query) { dropdown.style.display = 'none'; return; }
+		const q = query.toLowerCase();
+		const matches = nodes
+			.filter(n => n.name_abbrev && n.name_abbrev.toLowerCase().includes(q))
+			.sort((a, b) => b.numPapers - a.numPapers)
+			.slice(0, 12);
+		if (!matches.length) { dropdown.style.display = 'none'; return; }
+		dropdown.innerHTML = matches.map(n => {
+			const name = n.name_abbrev;
+			const idx  = name.toLowerCase().indexOf(q);
+			const highlighted = name.slice(0, idx)
+				+ `<span class="match">${name.slice(idx, idx + q.length)}</span>`
+				+ name.slice(idx + q.length);
+			return `<div class="dropdown-item" data-name="${name}">${highlighted}</div>`;
+		}).join('');
+		dropdown.style.display = 'block';
+	}
+
+	input.addEventListener('input', function() {
+		showDropdown(this.value.trim());
+		draw();
+	});
+
+	dropdown.addEventListener('mousedown', function(e) {
+		// mousedown fires before blur, so we can capture the click
+		const item = e.target.closest('.dropdown-item');
+		if (!item) return;
+		e.preventDefault();
+		const name = item.dataset.name;
+		input.value = name;
+		dropdown.style.display = 'none';
+		draw();
+		// Pin the node after the pending click event has fully propagated
+		recentPin = true;
+		setTimeout(() => {
+			if (window.__networkApi) window.__networkApi.pinByName(name);
+			setTimeout(() => { recentPin = false; }, 50);
+		}, 0);
+	});
+
+	input.addEventListener('blur', () => {
+		setTimeout(() => { dropdown.style.display = 'none'; }, 150);
+	});
+
+	input.addEventListener('keydown', function(e) {
+		if (e.key === 'Escape') {
+			input.value = '';
+			dropdown.style.display = 'none';
+			draw();
+		}
+	});
+}
+
+document.getElementById('toggleLabels').addEventListener('click', function() {
+	labelsVisible = !labelsVisible;
+	this.textContent = labelsVisible ? 'Hide labels' : 'Show labels';
+	this.classList.toggle('active', labelsVisible);
+	draw();
+});
+document.getElementById('toggleNASOnly').addEventListener('click', function() {
+	nasOnly = !nasOnly;
+	this.textContent = nasOnly ? 'Show all' : 'NAS only';
+	this.classList.toggle('active', nasOnly);
+	draw();
+});
+document.getElementById('resetHighlight').addEventListener('click', function() {
+	document.getElementById('searchBox').value = '';
+	document.getElementById('searchDropdown').style.display = 'none';
+	draw();
+});
+
+// ── Init ───────────────────────────────────────────────────────────
+async function init() {
+	try {
+		await fetchPeople();
+		await fetchPapers();
+		redraw();
+		populateAutocomplete();
+	} catch (err) {
+		document.getElementById('loading').textContent = 'Failed to load data: ' + err.message;
+		console.error(err);
+	}
+}
+
+init();
+</script>
+</body>
+</html>
