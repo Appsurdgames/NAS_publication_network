@@ -39,7 +39,7 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 - Network should be downloadable in various formats (Sh)
 - List of papers should be downloadable as bib (Ch)
 - Calculate and show network statistics (Ch)
-- The visualization can also show, on the right of the full netowrk, a subgraphof the selected node
+- The visualization can also show, on the right of the full network, a subgraph of the selected node
 
 # After development before live:
 - Carefully check papers for correctness (Mh)
