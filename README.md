@@ -78,7 +78,7 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 
 ~5b. Make separate detail pane on publications page (Massimo)~
 
-### March 2026
+### Now
 
 5b. Create new tab with table of publications. Columns: Authors, Title, DOI/URL (Roberto)
 
