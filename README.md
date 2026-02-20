@@ -18,9 +18,9 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 
 (There is an additional script scr/people.html which is unused)
 
-# Todo
-
 ## Requirements / wishes:
+
+### Development
 
 - Show a network (with 3dJS) with people as nodes and connect people if they wrote a paper together (Mh)
 - Website hosts an Excel file from which the network is built (Mh)
@@ -41,19 +41,22 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 - Calculate and show network statistics (Ch)
 - The visualization can also show, on the right of the full network, a subgraph of the selected node
 
-# After development before live:
+### After development before live:
 - Carefully check papers for correctness (Mh)
 - Update people list with current and former NAS members (Mh)
 - Update paper list (Mh)
 
-# When live
+### When live
 - Constantly add new papers by website admin (Mh)
 
-# Known bugs:
+### Known bugs:
 
 - current implementation of papers only distinguishes between names. People with similar first letters and last name will be (incorrectly) aggregated together. From the list of papers, this is very complicated to add to without completely manually going over this paper by paper.
 
-# Planning
+
+## Planning
+
+### January 2026
 
 ~1a. Investigate current infeastructure~
 
@@ -69,21 +72,50 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 
 ~4b. Upload Excel files (Massimo)~
 
-5a. Create new tab with table of publications. Columns: Authors, Title, DOI/URL (Roberto)
+### February 2026
 
-5b. Make network less cluttered (Matteo)
+~5a. Make network less cluttered (Matteo)~
 
-5c. Make separate detail pane on publications page (Massimo)
+~5b. Make separate detail pane on publications page (Massimo)~
 
-6. Discuss next steps
+### March 2026
 
-7. Assemble final paper list \& employee list
+5b. Create new tab with table of publications. Columns: Authors, Title, DOI/URL (Roberto)
 
-8. Beta version, collect feedback
+~6a. Check removal of banner on top of website page (Roberto)~
 
-9. Final steps (features \& bugfixing)
+~6b. Update people.xlsx with current and former NAS members (Massimo)~
 
-10. Live!
+6c. Optimise network edge highlighting (Matteo)
+
+6d. Make NAS nodes bigger (Matteo)
+
+6e. Add downloadable bibtex (Matteo)
+
+6f. Make network downloadable (possibly in different formats) (Matteo)
+
+6g. Make network fits exactly on the laptop screen (no scrolling required) (Matteo)
+
+6h.  Make simple network statistics (#nodes and #edges) better visible (and also #papers ?) (Matteo)
+
+6i. Researcher detail pane: (1) show more papers than 3? (2) also show collaborators, (3) be able to click on collaborators and navigate to their node (Matteo)
+
+6j. (Nice to have) For NAS members, add their picture (Matteo)
+
+6k. Collect Piet's feedback (Roberto)
+
+7. Discuss next steps
+
+### Later
+
+- Add 2024-2025-2026 papers to list
+
+- Beta version: collect feedback
+
+- Final steps (features \& bugfixing)
+
+- Live!
+
 
 ## Joomla settings
 
@@ -98,3 +130,4 @@ Allowed extensions: Add "xlsx"
 Legal Document Extensions (File Types): Add "xlsx"
 
 Legal MIME Types: Add "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
