@@ -106,6 +106,8 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 
 6l. Make it mobile-friendly (Roberto)
 
+~6m. Add 2024-2025-2026 papers to list (Massimo)~
+
 7. Discuss next steps
 
 ### Further ideas / to be discussed
@@ -123,8 +125,6 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 - The button "NAS-only" barely does anything, as the NAS people are very visible already. Remove it?
 
 ### Later
-
-- Add 2024-2025-2026 papers to list
 
 - Beta version: collect feedback
 
