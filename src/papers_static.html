@@ -339,8 +339,12 @@ async function fetchPeople() {
 	nodes = XLSX.utils.sheet_to_json(ws);
 	nodes.forEach((p, i) => {
 		p.id = 10000 + i;
-		p.isUniversity = (p.position !== 'former') ? 1 : 2;
-		if (p.isUniversity === 2) p.institutions = 'Previous NAS, current unknown';
+		if (p.position.includes('Former')) {
+			p.isUniversity = 2;
+			p.institutions = p.position;
+		} else {
+			p.isUniversity = 1;
+		}
 	});
 }
 
@@ -359,7 +363,7 @@ async function fetchPapers() {
 	const extNames = [...new Set(jsonPapers.flatMap(p => p.authorList))];
 	extNames.forEach((name, i) => {
 		if (!nodes.some(n => n.name_abbrev === name)) {
-			nodes.push({ id: i, isUniversity: 0, name_abbrev: name, url: '#', institutions: 'External', position: '' });
+			nodes.push({ id: i, isUniversity: 0, name_abbrev: name, url: '#', institutions: 'External researcher', position: '' });
 		}
 	});
 
@@ -700,7 +704,7 @@ function draw() {
 
 	// ── Legend ──
 	const legend = svg.append('g')
-		.attr('transform', `translate(16, ${HEIGHT - 90})`);
+		.attr('transform', `translate(${WIDTH - 200}, 20)`);
 
 	const legendItems = [
 		{ color: NODE_COLOUR_UNI,   label: 'NAS employees' },
