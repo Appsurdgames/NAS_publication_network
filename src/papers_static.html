@@ -572,7 +572,7 @@ function draw() {
 			return Math.cos(angle) >= 0 ? 'start' : 'end';
 		})
 		.attr('dominant-baseline', 'middle')
-		.text(d => d.name_abbrev)
+		.text(d => d.name || d.name_abbrev)
 		.style('display', labelsVisible ? 'block' : 'none');
 
 	// ── Highlight logic ──
@@ -612,9 +612,10 @@ function draw() {
 			return `<div class="paper-item">${i+1}. <em>${p.title}</em> (${p.year})${doi}</div>`;
 		}).join('');
 		return `
+			${d.picture ? `<img src="${d.picture}" alt="Profile picture" style="width:50px; height:auto; border-radius:40%; margin-bottom:8px; display:block;">` : ''}
 			<strong>${d.isUniversity === 1
 				? `<a href="${d.url}" target="_blank">${d.name || d.name_abbrev}</a>`
-				: d.name_abbrev}</strong><br>
+				: d.name || d.name_abbrev}</strong><br>
 			${d.institutions ? `<span style="color:#888">${d.institutions}</span><br>` : ''}
 			${d.position && d.isUniversity === 1 ? `Position: ${d.position}<br>` : ''}
 			Papers: <b>${d.numPapers}</b> &nbsp;·&nbsp; Collaborators: <b>${nb.size - 1}</b>
@@ -693,7 +694,10 @@ function draw() {
 
 	// ── Search highlight ──
 	if (search) {
-		const match = visibleNodes.filter(nd => nd.name_abbrev.toLowerCase().includes(search));
+		const match = visibleNodes.filter(nd => 
+			(nd.name_abbrev && nd.name_abbrev.toLowerCase().includes(search)) ||
+			(nd.name && nd.name.toLowerCase().includes(search))
+		);
 		if (match.length > 0) {
 			const names = new Set(match.map(m => m.name_abbrev));
 			// also include their neighbours
@@ -745,17 +749,24 @@ function populateAutocomplete() {
 		if (!query) { dropdown.style.display = 'none'; return; }
 		const q = query.toLowerCase();
 		const matches = nodes
-			.filter(n => n.name_abbrev && n.name_abbrev.toLowerCase().includes(q))
+			.filter(n => 
+				(n.name_abbrev && n.name_abbrev.toLowerCase().includes(q)) ||
+				(n.name && n.name.toLowerCase().includes(q))
+			)
 			.sort((a, b) => b.numPapers - a.numPapers)
 			.slice(0, 12);
 		if (!matches.length) { dropdown.style.display = 'none'; return; }
 		dropdown.innerHTML = matches.map(n => {
-			const name = n.name_abbrev;
-			const idx  = name.toLowerCase().indexOf(q);
-			const highlighted = name.slice(0, idx)
-				+ `<span class="match">${name.slice(idx, idx + q.length)}</span>`
-				+ name.slice(idx + q.length);
-			return `<div class="dropdown-item" data-name="${name}">${highlighted}</div>`;
+			const displayName = n.name || n.name_abbrev;
+			const searchName = n.name_abbrev;
+			let highlighted = displayName;
+			const idx = displayName.toLowerCase().indexOf(q);
+			if (idx >= 0) {
+				highlighted = displayName.slice(0, idx)
+					+ `<span class="match">${displayName.slice(idx, idx + q.length)}</span>`
+					+ displayName.slice(idx + q.length);
+			}
+			return `<div class="dropdown-item" data-name="${searchName}">${highlighted}</div>`;
 		}).join('');
 		dropdown.style.display = 'block';
 	}

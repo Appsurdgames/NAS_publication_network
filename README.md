@@ -100,11 +100,27 @@ All papers have been checked on title in the Scopus database, also see _verify_p
 
 6i. Researcher detail pane: (1) show more papers than 3? (2) also show collaborators, (3) be able to click on collaborators and navigate to their node (Matteo)
 
-6j. (Nice to have) For NAS members, add their picture (Matteo)
+~6j. (Nice to have) For NAS members, add their picture (Matteo)~
 
-6k. Collect Piet's feedback (Roberto)
+~6k. Collect Piet's feedback (Roberto)~
+
+6l. Make it mobile-friendly (Roberto)
 
 7. Discuss next steps
+
+### Further ideas / to be discussed
+
+- Clicking or hovering over a node causes not just its neighbours to get highlighted, but it seems highlighting is based on papers rather than node neighbours.
+
+- Now nodal info appears twice; once in the left-top when clicked on a node and also when hovered over a node. I would show this only once. Also, the top-left popup is moveable, is that intended?
+
+- Avoid being able to scroll / zoom in?
+
+- Make NAS and former NAS be spread out more evenly
+
+- Changing the slider "Min. shared papers" causes the number of collaborators of nodes to change (mostly to zero). Is this intentional/desired?
+
+- The button "NAS-only" barely does anything, as the NAS people are very visible already. Remove it?
 
 ### Later
 
