@@ -88,9 +88,13 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 - Discuss next steps: is another round of modifications required before beta version? (+- April 2026)
 
-- Beta version: collect feedback from NAS group (+- April 2026)
+- If applicable, apply modifications (+- April 2026)
+
+- Beta version: collect feedback from NAS group (+- April/May 2026)
 
 - Final steps (features \& bugfixing) (+- May 2026)
+
+- Cleanup repo (+- May 2026)
 
 - Live! (+- June 2026)
 
@@ -106,6 +110,9 @@ In Joomla, Excel files are not uploadable by default. They should be enabled fir
 
 In the left navigation bar, go to "Content" -> "Media". Click "Options" in the top-right corner.
 
+Allowed extensions: Add "xlsx"
+
+Legal Document Extensions (File Types): Add "xlsx"
 
 ## Old requirement list
 
@@ -137,9 +144,5 @@ In the left navigation bar, go to "Content" -> "Media". Click "Options" in the t
 
 ### When live
 - Constantly add new papers by website admin (Mh)
-Allowed extensions: Add "xlsx"
-
-Legal Document Extensions (File Types): Add "xlsx"
-
 Legal MIME Types: Add "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
