@@ -58,31 +58,31 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 7a. Create new tab with table of publications. Columns: Authors, Title, DOI/URL (Roberto)
 
-7b. Optimise network edge highlighting (Matteo)
+~7b. Optimise network edge highlighting (Matteo)~
 
-7c. Make NAS nodes bigger (Matteo)
+~7c. Make NAS nodes bigger (Matteo)~
 
 7d. Add downloadable bibtex (Matteo)
 
-7e. Make network downloadable (possibly in different formats) (Matteo)
+~7e. Make network downloadable (possibly in different formats) (Matteo)~
 
-7f. Make network fits exactly on the laptop screen (no scrolling required) (Matteo)
+~7f. Make network fits exactly on the laptop screen (no scrolling required) (Matteo)~
 
-7g.  Make simple network statistics (#nodes and #edges) better visible (and also #papers ?) (Matteo)
+~7g.  Make simple network statistics (#nodes and #edges) better visible (and also #papers ?) (Matteo)~
 
-7h. Researcher detail pane: (1) show more papers than 3? (2) also show collaborators, (3) be able to click on collaborators and navigate to their node (Matteo)
+~7h. Researcher detail pane: (1) show more papers than 3? (2) also show collaborators, (3) be able to click on collaborators and navigate to their node (Matteo)~
 
 7i. Make it mobile-friendly (Roberto)
 
-7j. Clicking or hovering over a node causes not just its neighbours to get highlighted, but it seems highlighting is based on papers rather than node neighbours (Matteo)
+~7j. Clicking or hovering over a node causes not just its neighbours to get highlighted, but it seems highlighting is based on papers rather than node neighbours (Matteo)~
 
-7k. Now nodal info appears twice; once in the left-top when clicked on a node and also when hovered over a node. Show this only once. Also, the top-left popup is moveable, is that intended? (Matteo)
+~7k. Now nodal info appears twice; once in the left-top when clicked on a node and also when hovered over a node. Show this only once. Also, the top-left popup is moveable, is that intended? (Matteo)~
 
-7l. Make NAS and former NAS nodes to be spread out more evenly (Matteo)
+~7l. Make NAS and former NAS nodes to be spread out more evenly (Matteo)~
 
-7m. Check: Changing the slider "Min. shared papers" causes the number of collaborators of nodes to change (mostly to zero). Is this intentional/desired? (Matteo)
+~7m. Check: Changing the slider "Min. shared papers" causes the number of collaborators of nodes to change (mostly to zero). Is this intentional/desired? (Matteo)~
 
-7n. Check: The button "NAS-only" barely does anything, as the NAS people are very visible already. (Matteo)
+~7n. Check: The button "NAS-only" barely does anything, as the NAS people are very visible already. (Matteo)~
 
 ### Later
 
