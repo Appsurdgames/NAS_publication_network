@@ -114,6 +114,8 @@ Allowed extensions: Add "xlsx"
 
 Legal Document Extensions (File Types): Add "xlsx"
 
+Legal MIME Types: Add "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
 ## Old requirement list
 
 ### Development
@@ -144,5 +146,5 @@ Legal Document Extensions (File Types): Add "xlsx"
 
 ### When live
 - Constantly add new papers by website admin (Mh)
-Legal MIME Types: Add "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
 
