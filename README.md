@@ -54,15 +54,11 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~6e. Add 2024-2025-2026 papers to list (Massimo)~
 
-### Now
-
-7a. Create new tab with table of publications. Columns: Authors, Title, DOI/URL (Roberto)
+### April 2026
 
 ~7b. Optimise network edge highlighting (Matteo)~
 
 ~7c. Make NAS nodes bigger (Matteo)~
-
-7d. Add downloadable bibtex (Matteo)
 
 ~7e. Make network downloadable (possibly in different formats) (Matteo)~
 
@@ -71,8 +67,6 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 ~7g.  Make simple network statistics (#nodes and #edges) better visible (and also #papers ?) (Matteo)~
 
 ~7h. Researcher detail pane: (1) show more papers than 3? (2) also show collaborators, (3) be able to click on collaborators and navigate to their node (Matteo)~
-
-7i. Make it mobile-friendly (Roberto)
 
 ~7j. Clicking or hovering over a node causes not just its neighbours to get highlighted, but it seems highlighting is based on papers rather than node neighbours (Matteo)~
 
@@ -84,23 +78,27 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~7n. Check: The button "NAS-only" barely does anything, as the NAS people are very visible already. (Matteo)~
 
+### Now
+
+8a. Create new tab with table of publications. Columns: Authors, Title, Journal, DOI/URL. Allow searching, filtering and sorting for authors, title and journal  (Roberto).
+
+8b. Make it mobile-friendly (Roberto)
+
+8c. Collect feedback from NAS group (Roberto & Matteo)
+
 ### Later
-
-- Discuss next steps: is another round of modifications required before beta version? (+- April 2026)
-
-- If applicable, apply modifications (+- April 2026)
-
-- Beta version: collect feedback from NAS group (+- April/May 2026)
 
 - Final steps (features \& bugfixing) (+- May 2026)
 
-- Cleanup repo (+- May 2026)
+- Cleanup repo (+- June 2026)
 
 - Live! (+- June 2026)
 
-### Known bugs:
+### Known bugs / ideas:
 
 - current implementation of papers only distinguishes between names. People with similar first letters and last name will be (incorrectly) aggregated together. From the list of papers, this is very complicated to add to without completely manually going over this paper by paper.
+
+- Add downloadable bibtex
 
 ## Joomla settings
 
