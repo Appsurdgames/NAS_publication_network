@@ -177,7 +177,7 @@
 			transition: opacity 0.15s;
 		}
 		.link.faded { opacity: 0.05; }
-		.link.highlighted { stroke: #FF5733; stroke-width: 2px; opacity: 1; }
+		.link.highlighted { stroke: #E87840; stroke-width: 2.5px; opacity: 1; }
 
 		.node-circle {
 			stroke: #fff;
@@ -686,7 +686,7 @@ function draw() {
 			return `M${d.source.x},${d.source.y} Q${cx1},${cy1} ${d.target.x},${d.target.y}`;
 		})
 		.attr('stroke-width', d => linkStroke(d.count))
-		.attr('stroke-opacity', d => Math.max(0.08, Math.min(0.58, 0.11 * d.count)));
+		.attr('stroke-opacity', d => Math.max(0.25, Math.min(1.0, 0.11 * d.count)));
 
 	const nodeSel = zoomContainer.append('g').attr('class', 'nodes')
 		.selectAll('g')
@@ -741,7 +741,6 @@ function draw() {
 			.classed('selected', nd => nd.name_abbrev === nodeName && !!isPinnedSelection);
 		nodeSel.select('text').classed('faded', nd => !nodeSet.has(nd.name_abbrev));
 		linkSel
-			.classed('faded', l => !info.incidentLinkKeys.has(edgeKey(l)))
 			.classed('highlighted', l => info.incidentLinkKeys.has(edgeKey(l)));
 		nodeSel.filter(nd => nd.name_abbrev === nodeName).raise();
 		setLabelVisibility(nodeName);
