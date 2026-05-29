@@ -120,7 +120,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 9n. Green nodes are overlapping (Roberto)
 
-9o. Check pictures (Massimo)
+~9o. Check pictures (Massimo)~
 
 9p. Double-check all papers without any (former) NAS members as authors (Massimo)
 
