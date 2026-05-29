@@ -2,6 +2,10 @@
 
 This repository contains a publication network related to the NAS department at TU Delft. Each node represents a current NAS employee, former NAS employee or external collaborator. Nodes are connected if at least one paper is written together. Clicking on a node shows an overview of node properties and the latest three published paper of that person.
 
+Q: What is the required format for papers?
+
+A: You can add them to the Excel file. Only use first name letters, no full names. If a person has multiple first names, abbreviate all and do not use a space, e.g. "A.B. James"
+
 Q: Which papers are considered?
 
 A: Only papers are considered that have been during during the time period the researcher has been affliated with NAS or worked with a NAS members. Any papers outside this period are not considered.
@@ -17,14 +21,10 @@ Also includes position, topic, institution and url.
 
 - `data/source_papers.xlsx`: list of papers written in the NAS department.
 
-- `src/papers.html`: web page using d3 Javascript library to visualise a network with people as nodes.
-
-- `src/worker.js`: Additional helper Javascript file for heavy network computations such as the clustering coefficient. TODO to be removed.
+- `src/network.html`: web page using d3 Javascript library to visualise a network with people as nodes.
 
 All papers have been checked on title in the Scopus database, also see `data/_verify_papers.py`
 `data/_check_validity_authors_journals`: helps to identify whether the current list of papers is complete/correct.
-
-(There is an additional script `scr/people.html` which is unused)
 
 ## Planning
 
@@ -96,21 +96,21 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 9b. Make it mobile-friendly (Roberto)
 
-9c. Clean Rob's and Nico Bakens' papers manually. (Massimo)
+~9c. Clean Rob's and Nico Bakens' papers manually. (Massimo)~
 
 9d. Go over former and external researchers to see if we missed any NAS members (Edgar)
 
-9e. Add latest papers (Massimo)
+~9e. Add latest papers (Roberto)~
 
-9f. Ask Eric Smetitink to ask paper list (Edgar)
+9f. Ask Eric Smeitink to ask paper list (Edgar)
 
-9g. Add dissertations as single-author papers (Massimo)
+~9g. Add dissertations as single-author papers (Massimo)~
 
 9h. Check missing dissertations (Edgar)
 
-9i. Make CSVs export using ; instead of , (Massimo)
+~9i. Make CSVs export using ; instead of , (Massimo)~
 
-9j. Rename "recent" to "latest" papers and remove the number (Massimo)
+~9j. Rename "recent" to "latest" papers and remove the number (Massimo)~
 
 9k. Add (former) NAS members without publications as isolated nodes (Matteo)
 
@@ -122,9 +122,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 9o. Check pictures (Massimo)
 
-9p. Add latest publications (Massimo)
-
-9q. Double-check all papers without any (former) NAS members as authors
+9p. Double-check all papers without any (former) NAS members as authors (Massimo)
 
 
 ### Later

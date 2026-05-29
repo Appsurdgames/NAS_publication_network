@@ -446,7 +446,13 @@ async function fetchPapers() {
 		nd.paperList.sort((a, b) => (b.year || 0) - (a.year || 0));
 		nd.topPapers = nd.paperList.slice(0, 10);
 		nd.topPapersHtml = nd.topPapers.map((p, i) => {
-			const doiPart = p.doi ? ` <a href="https://doi.org/${p.doi}" target="_blank">DOI</a>` : '';
+			let doiPart = '';
+			if (p.doi) {
+				const doiPrefix = p.doi.toLowerCase().startsWith('uuid')
+					? 'https://resolver.tudelft.nl/'
+					: 'https://doi.org/';
+				doiPart = ` <a href="${doiPrefix}${p.doi}" target="_blank">DOI</a>`;
+			}
 			return `<div class="paper-item">${i + 1}. <em>${p.title || 'Untitled'}</em> (${p.year || 'n/a'})${doiPart}</div>`;
 		}).join('');
 	});
@@ -572,7 +578,7 @@ function updateDetailPanel(node, pinMode) {
 		${node.institutions ? `<span style="color:#718395">${node.institutions}</span><br>` : ''}
 		${node.position && node.isUniversity === 1 ? `Position: ${node.position}<br>` : ''}
 		Papers: <b>${node.numPapers}</b> &nbsp;|&nbsp; Collaborators: <b>${collabNames.length}</b>
-		<div class="section"><b>Recent papers (${papersToShow.length})</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
+		<div class="section"><b>Latest papers</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
 		<div class="section"><b>Collaborators (click to navigate)</b><br>${collabHtml}</div>
 	`;
 	detailPanel.classList.toggle('pinned', !!pinMode);
@@ -967,18 +973,18 @@ function exportJSON() {
 }
 
 function exportEdgesCSV() {
-	const lines = ['source,target,weight'];
+	const lines = ['source;target;weight'];
 	lastRendered.visibleLinks.forEach(l => {
-		lines.push(`"${l.source.name_abbrev}","${l.target.name_abbrev}",${l.count}`);
+		lines.push(`"${l.source.name_abbrev}";"${l.target.name_abbrev}";${l.count}`);
 	});
 	downloadTextFile('nas_network_edges.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
 }
 
 function exportNodesCSV() {
-	const lines = ['id,name_abbrev,name,group,num_papers,institutions,position'];
+	const lines = ['id;name_abbrev;name;group;num_papers;institutions;position'];
 	lastRendered.visibleNodes.forEach(n => {
 		const safe = (v) => String(v || '').replace(/"/g, '""');
-		lines.push(`${n.id},"${safe(n.name_abbrev)}","${safe(n.name || n.name_abbrev)}",${n.isUniversity},${n.numPapers},"${safe(n.institutions)}","${safe(n.position)}"`);
+		lines.push(`${n.id};"${safe(n.name_abbrev)}";"${safe(n.name || n.name_abbrev)}";${n.isUniversity};${n.numPapers};"${safe(n.institutions)}";"${safe(n.position)}"`);
 	});
 	downloadTextFile('nas_network_nodes.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
 }
