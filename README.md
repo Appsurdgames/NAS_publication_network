@@ -116,7 +116,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 9l. Check performance and bugs (disappearing network & failing to select/deselect nodes) (Matteo)
 
-9m. Optimise edge selection algorithm from O(N2) to O(L) (Roberto)
+~9m. Optimise edge selection algorithm from O(N2) to O(L) (Roberto)~
 
 9n. Green nodes are overlapping (Roberto)
 
