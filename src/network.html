@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="robots" content="noindex">
+	<title>NAS Publication Network - Static View 2.0</title>
+	<script src="https://d3js.org/d3.v6.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<style>
+		*, *::before, *::after { box-sizing: border-box; }
+
+		html, body {
+			margin: 0;
+			height: 100%;
+			overflow: hidden;
+			font-family: 'Segoe UI', Arial, sans-serif;
+			background: #f4f7fb;
+			color: #1f2d3d;
+		}
+
+		#app {
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+
+		h1 {
+			text-align: center;
+			margin: 6px 0 4px;
+			font-size: 19px;
+			color: #1a2a3a;
+			letter-spacing: 0.4px;
+			flex: 0 0 auto;
+		}
+
+		#controls {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			gap: 8px 14px;
+			padding: 8px 14px;
+			background: #ffffff;
+			border-top: 1px solid #dbe4ef;
+			border-bottom: 1px solid #dbe4ef;
+			flex: 0 0 auto;
+		}
+
+		.ctrl-group {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 13px;
+		}
+
+		.ctrl-group label { color: #4c5b6a; white-space: nowrap; }
+
+		input[type=range] {
+			width: 110px;
+			accent-color: #18A8D5;
+		}
+
+		.badge {
+			display: inline-block;
+			min-width: 22px;
+			text-align: center;
+			background: #18A8D5;
+			color: #fff;
+			border-radius: 10px;
+			padding: 0 5px;
+			font-size: 12px;
+			font-weight: 600;
+		}
+
+		button {
+			padding: 6px 12px;
+			font-size: 12.5px;
+			cursor: pointer;
+			background: #18A8D5;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			transition: background 0.15s;
+		}
+		button:hover { background: #1080a0; }
+		button.active { background: #D54518; }
+
+		#searchBox {
+			padding: 5px 10px;
+			font-size: 13px;
+			border: 1px solid #c8d4e3;
+			border-radius: 5px;
+			width: 170px;
+		}
+		#searchBox:focus { outline: none; border-color: #18A8D5; }
+
+		#searchWrapper { position: relative; }
+		#searchDropdown {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: #fff;
+			border: 1px solid #b0c4d8;
+			border-top: none;
+			border-radius: 0 0 6px 6px;
+			max-height: 210px;
+			overflow-y: auto;
+			z-index: 200;
+			display: none;
+			box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+			min-width: 170px;
+		}
+		.dropdown-item {
+			padding: 6px 10px;
+			cursor: pointer;
+			font-size: 13px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.dropdown-item:hover { background: #e8f4f8; }
+		.dropdown-item .match { font-weight: bold; color: #18A8D5; }
+
+		#statsBar {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			padding: 6px 8px;
+			background: #f7fbff;
+			border-bottom: 1px solid #e2ebf5;
+			flex: 0 0 auto;
+		}
+
+		.stat-box {
+			background: #ffffff;
+			border: 1px solid #d6e2f0;
+			border-radius: 8px;
+			padding: 5px 10px;
+			min-width: 126px;
+			text-align: center;
+		}
+		.stat-label {
+			font-size: 11px;
+			color: #5f6f81;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+		.stat-value {
+			font-size: 18px;
+			font-weight: 700;
+			color: #1a2a3a;
+			line-height: 1.2;
+		}
+
+		#loading {
+			text-align: center;
+			padding: 40px;
+			font-size: 16px;
+			color: #7f8a96;
+			flex: 0 0 auto;
+		}
+
+		#chart {
+			position: relative;
+			flex: 1 1 auto;
+			min-height: 0;
+			overflow: hidden;
+			padding: 4px 8px 8px;
+		}
+
+		svg { display: block; overflow: hidden; }
+
+		.link {
+			fill: none;
+			stroke: #b0bec5;
+			transition: opacity 0.15s;
+		}
+		.link.faded { opacity: 0.05; }
+		.link.highlighted { stroke: #E87840; stroke-width: 2.5px; opacity: 1; }
+
+		.node-circle {
+			stroke: #fff;
+			stroke-width: 1.5px;
+			cursor: pointer;
+			transition: opacity 0.15s, filter 0.15s;
+		}
+		.node-circle.faded { opacity: 0.16; }
+		.node-circle.highlighted { stroke: #E87840; stroke-width: 2px; }
+		.node-circle.selected { stroke: #E87840; stroke-width: 3.5px; }
+
+		.node-label {
+			pointer-events: none;
+			font-size: 12px;
+			fill: #1a2a3a;
+			transition: opacity 0.15s;
+		}
+		.node-label.faded { opacity: 0.1; }
+
+		#detailPanel {
+			position: absolute;
+			top: 14px;
+			left: 14px;
+			width: 340px;
+			max-height: calc(100% - 26px);
+			overflow-y: auto;
+			background: #fff;
+			border: 1px solid #b0c4d8;
+			border-radius: 10px;
+			padding: 12px 14px;
+			font-size: 12.5px;
+			line-height: 1.6;
+			box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+			z-index: 120;
+			display: none;
+		}
+		#detailPanel.pinned { border-color: #18A8D5; border-width: 2px; }
+		#detailPanel strong { color: #1a2a3a; font-size: 13.5px; }
+		#detailPanel a { color: #18A8D5; text-decoration: none; font-weight: 600; }
+		#detailPanel a:hover { text-decoration: underline; }
+		#detailPanel .section { margin-top: 8px; border-top: 1px solid #eef2f7; padding-top: 6px; }
+		#detailPanel .paper-item { margin-bottom: 5px; color: #394959; font-size: 11.7px; }
+		#detailPanel .collab-link {
+			display: inline-block;
+			margin: 2px 5px 2px 0;
+			padding: 2px 7px;
+			border-radius: 999px;
+			background: #eef7fc;
+			color: #136f8c;
+			font-size: 11.5px;
+			cursor: pointer;
+		}
+		#detailPanel .collab-link:hover { background: #d9edf8; }
+		#detail-close {
+			position: absolute;
+			top: 6px;
+			right: 8px;
+			background: none;
+			border: none;
+			font-size: 16px;
+			line-height: 1;
+			color: #97a6b5;
+			cursor: pointer;
+			padding: 0 2px;
+		}
+		#detail-close:hover { color: #D54518; }
+
+		#chart svg { cursor: grab; }
+		#chart svg:active { cursor: grabbing; }
+
+		@media (max-width: 1100px) {
+			#detailPanel { width: 300px; }
+			.stat-box { min-width: 112px; }
+		}
+	</style>
+</head>
+<body>
+<div id="app">
+	<h1>NAS Publication Network</h1>
+
+	<div id="controls">
+		<div class="ctrl-group">
+			<label>Min. shared papers:</label>
+			<input type="range" id="linkThreshold" min="1" max="10" value="1">
+			<span class="badge" id="linkThresholdVal">1</span>
+		</div>
+		<div class="ctrl-group">
+			<label>Min. papers per author:</label>
+			<input type="range" id="nodeThreshold" min="1" max="15" value="1">
+			<span class="badge" id="nodeThresholdVal">1</span>
+		</div>
+		<div class="ctrl-group">
+			<div id="searchWrapper">
+				<input type="text" id="searchBox" placeholder="Search author..." autocomplete="off">
+				<div id="searchDropdown"></div>
+			</div>
+		</div>
+		<button id="toggleLabels">Show labels</button>
+		<button id="toggleNASOnly">NAS only</button>
+		<button id="resetHighlight">Reset</button>
+		<button id="downloadJSON">Download JSON</button>
+		<button id="downloadEdgesCSV">Download edges CSV</button>
+		<button id="downloadNodesCSV">Download nodes CSV</button>
+	</div>
+
+	<div id="statsBar">
+		<div class="stat-box">
+			<div class="stat-label">Total Nodes</div>
+			<div class="stat-value" id="statNodes">0</div>
+		</div>
+		<div class="stat-box">
+			<div class="stat-label">Total Edges</div>
+			<div class="stat-value" id="statEdges">0</div>
+		</div>
+		<div class="stat-box">
+			<div class="stat-label">Total Papers</div>
+			<div class="stat-value" id="statPapers">0</div>
+		</div>
+	</div>
+
+	<div id="loading">Loading data...</div>
+	<div id="chart">
+		<div id="detailPanel"></div>
+	</div>
+</div>
+
+<script>
+const NODE_COLOUR_UNI    = "#18A8D5";
+const NODE_COLOUR_EXUNI  = "#D54518";
+const NODE_COLOUR_OTHER  = "#52c9a4";
+const LOCATION_EXCEL_PEOPLE = '../data/source_people.xlsx';
+const LOCATION_EXCEL_PAPERS = '../data/source_papers.xlsx';
+
+let WIDTH = 1200;
+let HEIGHT = 800;
+let CX = WIDTH / 2;
+let CY = HEIGHT / 2;
+let R_NAS = 180;
+let R_FORMER = 300;
+let R_EXT = 420;
+
+let nodes = [];
+let jsonPapers = [];
+let linksByName = [];
+let labelsVisible = false;
+let nasOnly = false;
+let pinnedNodeName = null;
+let hoveredNodeName = null;
+let visibleNodeLookup = new Map();
+let visibleNeighbourMap = new Map();
+let visibleIncidentEdgeMap = new Map();
+let currentViewApi = null;
+let hoverRafId = 0;
+let pendingHoverName = null;
+let isPanelWired = false;
+
+const detailPanel = document.getElementById('detailPanel');
+let lastRendered = { visibleNodes: [], visibleLinks: [] };
+
+function wireDetailPanelDelegation() {
+	if (isPanelWired) return;
+	isPanelWired = true;
+	detailPanel.addEventListener('click', function(ev) {
+		const closeBtn = ev.target.closest('#detail-close');
+		if (closeBtn) {
+			ev.preventDefault();
+			clearSelection();
+			return;
+		}
+		const collab = ev.target.closest('.collab-link');
+		if (collab) {
+			ev.preventDefault();
+			const name = collab.getAttribute('data-name');
+			pinByName(name);
+		}
+	});
+}
+
+function updateViewportLayout() {
+	const app = document.getElementById('app');
+	const titleH = app.querySelector('h1').offsetHeight;
+	const controlsH = document.getElementById('controls').offsetHeight;
+	const statsH = document.getElementById('statsBar').offsetHeight;
+	const chart = document.getElementById('chart');
+	const used = titleH + controlsH + statsH + 24;
+	const availH = Math.max(420, window.innerHeight - used);
+	const availW = Math.max(880, window.innerWidth - 18);
+	chart.style.height = availH + 'px';
+	WIDTH = availW;
+	HEIGHT = availH - 4;
+	CX = WIDTH / 2;
+	CY = HEIGHT / 2;
+	const minSide = Math.max(320, Math.min(WIDTH, HEIGHT));
+	const step = minSide * 0.18;
+	R_NAS = step * 1.1;
+	R_FORMER = step * 1.8;
+	R_EXT = step * 2.45;
+}
+
+window.addEventListener('resize', () => {
+	if (!nodes.length) return;
+	updateViewportLayout();
+	draw();
+});
+
+async function fetchPeople() {
+	const res = await fetch(LOCATION_EXCEL_PEOPLE);
+	if (!res.ok) throw new Error('Failed to fetch people');
+	const buf = await res.arrayBuffer();
+	const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+	const ws = wb.Sheets[wb.SheetNames[0]];
+	nodes = XLSX.utils.sheet_to_json(ws);
+	nodes.forEach((p, i) => {
+		p.id = 10000 + i;
+		if (String(p.position || '').includes('Former')) {
+			p.isUniversity = 2;
+			p.institutions = p.position;
+		} else {
+			p.isUniversity = 1;
+		}
+	});
+}
+
+async function fetchPapers() {
+	const res = await fetch(LOCATION_EXCEL_PAPERS);
+	if (!res.ok) throw new Error('Failed to fetch papers');
+	const buf = await res.arrayBuffer();
+	const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+	const ws = wb.Sheets[wb.SheetNames[0]];
+	jsonPapers = XLSX.utils.sheet_to_json(ws);
+	jsonPapers.forEach(p => {
+		p.authorList = String(p.authors || '').split(',').map(a => a.trim()).filter(Boolean);
+	});
+
+	// Normalize author abbreviations: if an author matches a node's name_abbrev2,
+	// replace it with the primary name_abbrev so both abbreviations map to one node.
+	const abbrev2Map = new Map(nodes.filter(n => n.name_abbrev2).map(n => [n.name_abbrev2, n.name_abbrev]));
+	jsonPapers.forEach(p => {
+		p.authorList = p.authorList.map(a => abbrev2Map.get(a) || a);
+	});
+
+	const extNames = [...new Set(jsonPapers.flatMap(p => p.authorList))];
+	extNames.forEach((name, i) => {
+		if (!nodes.some(n => n.name_abbrev === name)) {
+			nodes.push({
+				id: i,
+				isUniversity: 0,
+				name_abbrev: name,
+				name: name,
+				url: '#',
+				institutions: 'External researcher',
+				position: ''
+			});
+		}
+	});
+
+	nodes.forEach(nd => {
+		nd.numPapers = 0;
+		nd.paperList = [];
+		jsonPapers.forEach(p => {
+			if (p.authorList.includes(nd.name_abbrev)) {
+				nd.paperList.push(p);
+				nd.numPapers++;
+			}
+		});
+		nd.paperList.sort((a, b) => (b.year || 0) - (a.year || 0));
+		nd.topPapers = nd.paperList.slice(0, 10);
+		nd.topPapersHtml = nd.topPapers.map((p, i) => {
+			let doiPart = '';
+			if (p.doi) {
+				const doiPrefix = p.doi.toLowerCase().startsWith('uuid')
+					? 'https://resolver.tudelft.nl/'
+					: 'https://doi.org/';
+				doiPart = ` <a href="${doiPrefix}${p.doi}" target="_blank">DOI</a>`;
+			}
+			return `<div class="paper-item">${i + 1}. <em>${p.title || 'Untitled'}</em> (${p.year || 'n/a'})${doiPart}</div>`;
+		}).join('');
+	});
+
+	const linkMap = {};
+	jsonPapers.forEach(paper => {
+		const al = paper.authorList;
+		for (let i = 0; i < al.length; i++) {
+			for (let j = i + 1; j < al.length; j++) {
+				const sourceName = al[i];
+				const targetName = al[j];
+				const key = [sourceName, targetName].sort().join('|||');
+				if (!linkMap[key]) linkMap[key] = { sourceName: sourceName, targetName: targetName, count: 0 };
+				linkMap[key].count++;
+			}
+		}
+	});
+	linksByName = Object.values(linkMap);
+}
+
+function nodeColour(d) {
+	if (d.isUniversity === 1) return NODE_COLOUR_UNI;
+	if (d.isUniversity === 2) return NODE_COLOUR_EXUNI;
+	return NODE_COLOUR_OTHER;
+}
+
+const radiusScale = d3.scaleSqrt().domain([0, 1]).range([3.2, 15.5]);
+
+function getNodeRadius(d) {
+	let base = radiusScale(d.numPapers || 0);
+	if (d.isUniversity === 1) base *= 1.34;
+	else if (d.isUniversity === 2) base *= 1.16;
+	return Math.max(3.5, base);
+}
+
+function orderEvenly(nodesInRing) {
+	const sorted = nodesInRing.slice().sort((a, b) => b.numPapers - a.numPapers);
+	const result = [];
+	let left = 0;
+	let right = sorted.length - 1;
+	while (left <= right) {
+		result.push(sorted[left++]);
+		if (left <= right) result.push(sorted[right--]);
+	}
+	return result;
+}
+
+function assignPositions() {
+	const nasNodes = orderEvenly(nodes.filter(n => n.isUniversity === 1));
+	const formerNodes = orderEvenly(nodes.filter(n => n.isUniversity === 2));
+	const extNodes = orderEvenly(nodes.filter(n => n.isUniversity === 0));
+
+	function placeRing(arr, radius, startOffset) {
+		if (!arr.length) return;
+		arr.forEach((nd, i) => {
+			const angle = (2 * Math.PI * i) / arr.length - Math.PI / 2 + startOffset;
+			nd.x = CX + radius * Math.cos(angle);
+			nd.y = CY + radius * Math.sin(angle);
+			nd.angle = angle;
+			nd.ringRadius = radius;
+		});
+	}
+
+	if (nasOnly) {
+		const ringRadius = Math.min(WIDTH, HEIGHT) * 0.34;
+		placeRing(nasNodes, ringRadius, 0);
+		placeRing(formerNodes, ringRadius * 10, 0);
+		placeRing(extNodes, ringRadius * 10, 0);
+		return;
+	}
+
+	placeRing(nasNodes, R_NAS, 0);
+	placeRing(formerNodes, R_FORMER, Math.PI / 36);
+	placeRing(extNodes, R_EXT, Math.PI / 72);
+}
+
+function resolveLinks() {
+	const nodeMap = {};
+	nodes.forEach(n => { nodeMap[n.name_abbrev] = n; });
+	return linksByName
+		.map(l => ({ source: nodeMap[l.sourceName], target: nodeMap[l.targetName], count: l.count }))
+		.filter(l => l.source && l.target);
+}
+
+function updateStats(visibleNodes, visibleLinks) {
+	const names = new Set(visibleNodes.map(n => n.name_abbrev));
+	const visiblePaperCount = jsonPapers.filter(p => p.authorList.some(a => names.has(a))).length;
+	document.getElementById('statNodes').textContent = visibleNodes.length;
+	document.getElementById('statEdges').textContent = visibleLinks.length;
+	document.getElementById('statPapers').textContent = visiblePaperCount;
+}
+
+function neighboursOf(nodeName) {
+	return {
+		neighbours: visibleNeighbourMap.get(nodeName) || [],
+		incidentLinkKeys: visibleIncidentEdgeMap.get(nodeName) || new Set()
+	};
+}
+
+function updateDetailPanel(node, pinMode) {
+	if (!node) {
+		detailPanel.style.display = 'none';
+		detailPanel.classList.remove('pinned');
+		return;
+	}
+	const info = neighboursOf(node.name_abbrev);
+	const collabNames = info.neighbours;
+	const papersToShow = node.topPapers || [];
+	const papersHtml = node.topPapersHtml || '';
+	const collabHtml = collabNames.length
+		? collabNames.map(n => `<a href="#" class="collab-link" data-name="${n}">${n}</a>`).join('')
+		: '<span style="color:#8fa0b0">No visible collaborators under current filters</span>';
+
+	const profileName = node.name || node.name_abbrev;
+	const clickableName = node.isUniversity === 1 && node.url && node.url !== '#'
+		? `<a href="${node.url}" target="_blank">${profileName}</a>`
+		: profileName;
+
+	detailPanel.innerHTML = `
+		<button id="detail-close" title="Close">&times;</button>
+		${node.picture ? `<img src="${node.picture}" alt="Profile picture" style="width:56px;height:auto;border-radius:35%;margin-bottom:8px;display:block;">` : ''}
+		<strong>${clickableName}</strong><br>
+		${node.institutions ? `<span style="color:#718395">${node.institutions}</span><br>` : ''}
+		${node.position && node.isUniversity === 1 ? `Position: ${node.position}<br>` : ''}
+		Papers: <b>${node.numPapers}</b> &nbsp;|&nbsp; Collaborators: <b>${collabNames.length}</b>
+		<div class="section"><b>Latest papers</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
+		<div class="section"><b>Collaborators (click to navigate)</b><br>${collabHtml}</div>
+	`;
+	detailPanel.classList.toggle('pinned', !!pinMode);
+	detailPanel.style.display = 'block';
+}
+
+function edgeKey(linkObj) {
+	return `${linkObj.source.name_abbrev}||${linkObj.target.name_abbrev}`;
+}
+
+function draw() {
+	assignPositions();
+	const allLinks = resolveLinks();
+
+	d3.select('#loading').style('display', 'none');
+	d3.select('#chart').selectAll('svg').remove();
+
+	const maxPapers = d3.max(nodes, d => d.numPapers) || 1;
+	radiusScale.domain([0, maxPapers]);
+
+	const linkThreshold = +document.getElementById('linkThreshold').value;
+	const nodeThreshold = +document.getElementById('nodeThreshold').value;
+	const search = document.getElementById('searchBox').value.toLowerCase().trim();
+
+	const visibleNodes = nodes.filter(nd => {
+		if (nd.numPapers < nodeThreshold) return false;
+		if (nasOnly && nd.isUniversity !== 1) return false;
+		return true;
+	});
+	const visibleSet = new Set(visibleNodes.map(n => n.name_abbrev));
+	const visibleLinks = allLinks.filter(l =>
+		l.count >= linkThreshold &&
+		visibleSet.has(l.source.name_abbrev) &&
+		visibleSet.has(l.target.name_abbrev)
+	);
+	visibleNodeLookup = new Map(visibleNodes.map(n => [n.name_abbrev, n]));
+	visibleNeighbourMap = new Map(visibleNodes.map(n => [n.name_abbrev, []]));
+	visibleIncidentEdgeMap = new Map(visibleNodes.map(n => [n.name_abbrev, new Set()]));
+	visibleLinks.forEach(l => {
+		const s = l.source.name_abbrev;
+		const t = l.target.name_abbrev;
+		const key = edgeKey(l);
+		visibleNeighbourMap.get(s).push(t);
+		visibleNeighbourMap.get(t).push(s);
+		visibleIncidentEdgeMap.get(s).add(key);
+		visibleIncidentEdgeMap.get(t).add(key);
+	});
+	visibleNeighbourMap.forEach((arr, name) => {
+		arr.sort((a, b) => a.localeCompare(b));
+		visibleNeighbourMap.set(name, arr);
+	});
+	lastRendered = { visibleNodes, visibleLinks };
+	updateStats(visibleNodes, visibleLinks);
+
+	if (pinnedNodeName && !visibleSet.has(pinnedNodeName)) pinnedNodeName = null;
+	if (hoveredNodeName && !visibleSet.has(hoveredNodeName)) hoveredNodeName = null;
+
+	const linkStroke = d3.scaleLinear()
+		.domain([1, d3.max(visibleLinks, l => l.count) || 1])
+		.range([0.5, 4.2]);
+
+	const svg = d3.select('#chart').append('svg')
+		.attr('width', WIDTH)
+		.attr('height', HEIGHT);
+
+	svg.append('rect')
+		.attr('x', 0)
+		.attr('y', 0)
+		.attr('width', WIDTH)
+		.attr('height', HEIGHT)
+		.attr('fill', 'transparent')
+		.on('click', () => clearSelection());
+
+	const zoomContainer = svg.append('g').attr('class', 'zoom-container');
+	svg.call(d3.zoom()
+		.scaleExtent([0.2, 8])
+		.on('zoom', function(event) {
+			zoomContainer.attr('transform', event.transform);
+		}));
+
+	const ringGuide = zoomContainer.append('g').attr('class', 'rings');
+	if (!nasOnly) {
+		[R_NAS, R_FORMER, R_EXT].forEach(r => {
+			ringGuide.append('circle')
+				.attr('cx', CX)
+				.attr('cy', CY)
+				.attr('r', r)
+				.attr('fill', 'none')
+				.attr('stroke', '#dde3ec')
+				.attr('stroke-dasharray', '4,4')
+				.attr('stroke-width', 1);
+		});
+	} else {
+		ringGuide.append('circle')
+			.attr('cx', CX)
+			.attr('cy', CY)
+			.attr('r', Math.min(WIDTH, HEIGHT) * 0.34)
+			.attr('fill', 'none')
+			.attr('stroke', '#dde3ec')
+			.attr('stroke-dasharray', '4,4')
+			.attr('stroke-width', 1);
+	}
+
+	const linkSel = zoomContainer.append('g').attr('class', 'links')
+		.selectAll('path')
+		.data(visibleLinks, d => edgeKey(d))
+		.enter().append('path')
+		.attr('class', 'link')
+		.attr('d', d => {
+			const mx = (d.source.x + d.target.x) / 2;
+			const my = (d.source.y + d.target.y) / 2;
+			const dx = mx - CX;
+			const dy = my - CY;
+			const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+			const pull = 0.28 + Math.min(0.18, 90 / dist);
+			const cx1 = mx - dx * pull;
+			const cy1 = my - dy * pull;
+			return `M${d.source.x},${d.source.y} Q${cx1},${cy1} ${d.target.x},${d.target.y}`;
+		})
+		.attr('stroke-width', d => linkStroke(d.count))
+		.attr('stroke-opacity', d => Math.max(0.25, Math.min(1.0, 0.11 * d.count)));
+
+	const nodeSel = zoomContainer.append('g').attr('class', 'nodes')
+		.selectAll('g')
+		.data(visibleNodes)
+		.enter().append('g')
+		.attr('class', 'node-g')
+		.attr('transform', d => `translate(${d.x},${d.y})`);
+
+	nodeSel.append('circle')
+		.attr('class', 'node-circle')
+		.attr('r', d => getNodeRadius(d))
+		.attr('fill', nodeColour);
+
+	nodeSel.append('text')
+		.attr('class', 'node-label')
+		.attr('x', d => {
+			const angle = d.angle || 0;
+			const r = getNodeRadius(d) + 3;
+			return r * Math.cos(angle) + (Math.cos(angle) >= 0 ? 2 : -2);
+		})
+		.attr('y', d => {
+			const angle = d.angle || 0;
+			const r = getNodeRadius(d) + 3;
+			return r * Math.sin(angle);
+		})
+		.attr('text-anchor', d => {
+			const angle = d.angle || 0;
+			return Math.cos(angle) >= 0 ? 'start' : 'end';
+		})
+		.attr('dominant-baseline', 'middle')
+		.text(d => d.name || d.name_abbrev)
+		.style('display', labelsVisible ? 'block' : 'none');
+
+	function setLabelVisibility(focusName) {
+		nodeSel.select('text')
+			.style('display', nd => (labelsVisible || (focusName && nd.name_abbrev === focusName)) ? 'block' : 'none');
+	}
+
+	function clearStyles() {
+		nodeSel.select('circle').classed('faded', false).classed('highlighted', false).classed('selected', false);
+		nodeSel.select('text').classed('faded', false);
+		linkSel.classed('faded', false).classed('highlighted', false);
+		setLabelVisibility(null);
+	}
+
+	function applyFocusNode(nodeName, isPinnedSelection) {
+		const info = neighboursOf(nodeName);
+		const nodeSet = new Set([nodeName, ...info.neighbours]);
+		nodeSel.select('circle')
+			.classed('faded', nd => !nodeSet.has(nd.name_abbrev))
+			.classed('highlighted', nd => info.neighbours.includes(nd.name_abbrev))
+			.classed('selected', nd => nd.name_abbrev === nodeName && !!isPinnedSelection);
+		nodeSel.select('text').classed('faded', nd => !nodeSet.has(nd.name_abbrev));
+		linkSel
+			.classed('highlighted', l => info.incidentLinkKeys.has(edgeKey(l)));
+		nodeSel.filter(nd => nd.name_abbrev === nodeName).raise();
+		setLabelVisibility(nodeName);
+	}
+
+	function applySearch(searchText) {
+		const q = searchText.toLowerCase();
+		if (!q) return false;
+		const matchNames = new Set(
+			visibleNodes
+				.filter(nd =>
+					(nd.name_abbrev && nd.name_abbrev.toLowerCase().includes(q)) ||
+					(nd.name && nd.name.toLowerCase().includes(q))
+				)
+				.map(nd => nd.name_abbrev)
+		);
+		if (!matchNames.size) return false;
+		const nodeSet = new Set(matchNames);
+		const edgeSet = new Set();
+		visibleLinks.forEach(l => {
+			if (matchNames.has(l.source.name_abbrev) || matchNames.has(l.target.name_abbrev)) {
+				nodeSet.add(l.source.name_abbrev);
+				nodeSet.add(l.target.name_abbrev);
+				edgeSet.add(edgeKey(l));
+			}
+		});
+		nodeSel.select('circle')
+			.classed('faded', nd => !nodeSet.has(nd.name_abbrev))
+			.classed('highlighted', nd => matchNames.has(nd.name_abbrev))
+			.classed('selected', false);
+		nodeSel.select('text').classed('faded', nd => !nodeSet.has(nd.name_abbrev));
+		linkSel
+			.classed('faded', l => !edgeSet.has(edgeKey(l)))
+			.classed('highlighted', l => edgeSet.has(edgeKey(l)));
+		setLabelVisibility(null);
+		return true;
+	}
+
+	window.__networkApi = {
+		pinByName(name) {
+			pinByName(name);
+		},
+		clearAll() {
+			clearSelection();
+		}
+	};
+	currentViewApi = {
+		applyFocusNode,
+		clearStyles,
+		applySearch
+	};
+
+	nodeSel
+		.on('mouseenter', function(event, d) {
+			if (pinnedNodeName) return;
+			pendingHoverName = d.name_abbrev;
+			if (hoverRafId) return;
+			hoverRafId = requestAnimationFrame(() => {
+				hoverRafId = 0;
+				if (pinnedNodeName || !pendingHoverName) return;
+				hoveredNodeName = pendingHoverName;
+				applyFocusNode(hoveredNodeName, false);
+				detailPanel.style.display = 'none';
+				detailPanel.classList.remove('pinned');
+			});
+		})
+		.on('mouseleave', function() {
+			if (pinnedNodeName) return;
+			pendingHoverName = null;
+			hoveredNodeName = null;
+			detailPanel.style.display = 'none';
+			clearStyles();
+			if (search) applySearch(search);
+		})
+		.on('click', function(event, d) {
+			event.stopPropagation();
+			pinByName(d.name_abbrev);
+		});
+
+	svg.on('click', () => clearSelection());
+
+	if (pinnedNodeName) {
+		const d = visibleNodes.find(v => v.name_abbrev === pinnedNodeName);
+		if (d) {
+			applyFocusNode(d.name_abbrev, true);
+			updateDetailPanel(d, true);
+		} else {
+			clearSelection();
+		}
+	} else if (hoveredNodeName) {
+		const d = visibleNodes.find(v => v.name_abbrev === hoveredNodeName);
+		if (d) {
+			applyFocusNode(d.name_abbrev, false);
+			detailPanel.style.display = 'none';
+			detailPanel.classList.remove('pinned');
+		}
+	} else if (search) {
+		if (!applySearch(search)) clearStyles();
+	} else {
+		clearStyles();
+	}
+
+	const legend = svg.append('g').attr('transform', `translate(${WIDTH - 230}, 20)`);
+	[
+		{ color: NODE_COLOUR_UNI, label: 'NAS employees' },
+		{ color: NODE_COLOUR_EXUNI, label: 'Former NAS employees' },
+		{ color: NODE_COLOUR_OTHER, label: 'External researchers' }
+	].forEach((item, i) => {
+		const g = legend.append('g').attr('transform', `translate(0,${i * 20})`);
+		g.append('circle').attr('r', 6).attr('cx', 6).attr('cy', 6).attr('fill', item.color);
+		g.append('text').attr('x', 18).attr('y', 10).style('font-size', '12px').text(item.label);
+	});
+
+	svg.append('text')
+		.attr('x', WIDTH - 12)
+		.attr('y', HEIGHT - 34)
+		.attr('text-anchor', 'end')
+		.style('font-size', '11px')
+		.style('fill', '#7f8da0')
+		.text(`${visibleNodes.length} nodes - ${visibleLinks.length} links shown`);
+
+	svg.append('text')
+		.attr('x', WIDTH - 12)
+		.attr('y', HEIGHT - 21)
+		.attr('text-anchor', 'end')
+		.style('font-size', '10.5px')
+		.style('fill', '#8a97a8')
+		.text('Node size = sqrt(#papers) x group factor');
+
+	svg.append('text')
+		.attr('x', WIDTH - 12)
+		.attr('y', HEIGHT - 8)
+		.attr('text-anchor', 'end')
+		.style('font-size', '10.5px')
+		.style('fill', '#8a97a8')
+		.text('Factors: NAS 1.34 | Former NAS 1.16 | External 1.00');
+}
+
+function clearSelection() {
+	pinnedNodeName = null;
+	hoveredNodeName = null;
+	pendingHoverName = null;
+	detailPanel.style.display = 'none';
+	detailPanel.classList.remove('pinned');
+	if (hoverRafId) {
+		cancelAnimationFrame(hoverRafId);
+		hoverRafId = 0;
+	}
+	if (currentViewApi) {
+		currentViewApi.clearStyles();
+		const search = document.getElementById('searchBox').value.toLowerCase().trim();
+		if (search) currentViewApi.applySearch(search);
+		return;
+	}
+	draw();
+}
+
+function pinByName(name) {
+	if (!name) return;
+	pinnedNodeName = name;
+	hoveredNodeName = null;
+	pendingHoverName = null;
+	if (hoverRafId) {
+		cancelAnimationFrame(hoverRafId);
+		hoverRafId = 0;
+	}
+	const node = visibleNodeLookup.get(name);
+	if (node && currentViewApi) {
+		currentViewApi.applyFocusNode(name, true);
+		updateDetailPanel(node, true);
+		return;
+	}
+	draw();
+}
+
+function downloadTextFile(filename, text, mimeType) {
+	const blob = new Blob([text], { type: mimeType });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+	URL.revokeObjectURL(url);
+}
+
+function exportJSON() {
+	const linkThreshold = +document.getElementById('linkThreshold').value;
+	const nodeThreshold = +document.getElementById('nodeThreshold').value;
+	const payload = {
+		meta: {
+			generatedAt: new Date().toISOString(),
+			filters: {
+				linkThreshold: linkThreshold,
+				nodeThreshold: nodeThreshold,
+				nasOnly: nasOnly
+			}
+		},
+		nodes: lastRendered.visibleNodes.map(n => ({
+			id: n.id,
+			name_abbrev: n.name_abbrev,
+			name: n.name || n.name_abbrev,
+			isUniversity: n.isUniversity,
+			numPapers: n.numPapers,
+			institutions: n.institutions || '',
+			position: n.position || ''
+		})),
+		edges: lastRendered.visibleLinks.map(l => ({
+			source: l.source.name_abbrev,
+			target: l.target.name_abbrev,
+			weight: l.count
+		}))
+	};
+	downloadTextFile('nas_network.json', JSON.stringify(payload, null, 2), 'application/json');
+}
+
+function exportEdgesCSV() {
+	const lines = ['source;target;weight'];
+	lastRendered.visibleLinks.forEach(l => {
+		lines.push(`"${l.source.name_abbrev}";"${l.target.name_abbrev}";${l.count}`);
+	});
+	downloadTextFile('nas_network_edges.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
+}
+
+function exportNodesCSV() {
+	const lines = ['id;name_abbrev;name;group;num_papers;institutions;position'];
+	lastRendered.visibleNodes.forEach(n => {
+		const safe = (v) => String(v || '').replace(/"/g, '""');
+		lines.push(`${n.id};"${safe(n.name_abbrev)}";"${safe(n.name || n.name_abbrev)}";${n.isUniversity};${n.numPapers};"${safe(n.institutions)}";"${safe(n.position)}"`);
+	});
+	downloadTextFile('nas_network_nodes.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
+}
+
+function populateAutocomplete() {
+	const input = document.getElementById('searchBox');
+	const dropdown = document.getElementById('searchDropdown');
+
+	function showDropdown(query) {
+		if (!query) {
+			dropdown.style.display = 'none';
+			return;
+		}
+		const q = query.toLowerCase();
+		const matches = nodes
+			.filter(n =>
+				(n.name_abbrev && n.name_abbrev.toLowerCase().includes(q)) ||
+				(n.name && n.name.toLowerCase().includes(q))
+			)
+			.sort((a, b) => b.numPapers - a.numPapers)
+			.slice(0, 12);
+		if (!matches.length) {
+			dropdown.style.display = 'none';
+			return;
+		}
+		dropdown.innerHTML = matches.map(n => {
+			const displayName = n.name || n.name_abbrev;
+			const searchName = n.name_abbrev;
+			let highlighted = displayName;
+			const idx = displayName.toLowerCase().indexOf(q);
+			if (idx >= 0) {
+				highlighted = displayName.slice(0, idx)
+					+ `<span class="match">${displayName.slice(idx, idx + q.length)}</span>`
+					+ displayName.slice(idx + q.length);
+			}
+			return `<div class="dropdown-item" data-name="${searchName}">${highlighted}</div>`;
+		}).join('');
+		dropdown.style.display = 'block';
+	}
+
+	input.addEventListener('input', function() {
+		showDropdown(this.value.trim());
+		draw();
+	});
+
+	dropdown.addEventListener('mousedown', function(e) {
+		const item = e.target.closest('.dropdown-item');
+		if (!item) return;
+		e.preventDefault();
+		const name = item.dataset.name;
+		input.value = name;
+		dropdown.style.display = 'none';
+		pinByName(name);
+	});
+
+	input.addEventListener('blur', () => {
+		setTimeout(() => { dropdown.style.display = 'none'; }, 150);
+	});
+
+	input.addEventListener('keydown', function(e) {
+		if (e.key === 'Escape') {
+			input.value = '';
+			dropdown.style.display = 'none';
+			pinnedNodeName = null;
+			draw();
+		}
+	});
+}
+
+function wireControls() {
+	document.getElementById('linkThreshold').addEventListener('input', function() {
+		document.getElementById('linkThresholdVal').textContent = this.value;
+		draw();
+	});
+	document.getElementById('nodeThreshold').addEventListener('input', function() {
+		document.getElementById('nodeThresholdVal').textContent = this.value;
+		draw();
+	});
+	document.getElementById('toggleLabels').addEventListener('click', function() {
+		labelsVisible = !labelsVisible;
+		this.textContent = labelsVisible ? 'Hide labels' : 'Show labels';
+		this.classList.toggle('active', labelsVisible);
+		draw();
+	});
+	document.getElementById('toggleNASOnly').addEventListener('click', function() {
+		nasOnly = !nasOnly;
+		this.textContent = nasOnly ? 'Show all' : 'NAS only';
+		this.classList.toggle('active', nasOnly);
+		draw();
+	});
+	document.getElementById('resetHighlight').addEventListener('click', function() {
+		document.getElementById('searchBox').value = '';
+		document.getElementById('searchDropdown').style.display = 'none';
+		pinnedNodeName = null;
+		hoveredNodeName = null;
+		draw();
+	});
+	document.getElementById('downloadJSON').addEventListener('click', exportJSON);
+	document.getElementById('downloadEdgesCSV').addEventListener('click', exportEdgesCSV);
+	document.getElementById('downloadNodesCSV').addEventListener('click', exportNodesCSV);
+}
+
+async function init() {
+	try {
+		updateViewportLayout();
+		wireDetailPanelDelegation();
+		wireControls();
+		await fetchPeople();
+		await fetchPapers();
+		populateAutocomplete();
+		draw();
+	} catch (err) {
+		document.getElementById('loading').textContent = 'Failed to load data: ' + err.message;
+		console.error(err);
+	}
+}
+
+init();
+</script>
+</body>
+</html>
