@@ -2,17 +2,8 @@
 
 This repository contains a publication network related to the NAS department at TU Delft. Each node represents a current NAS employee, former NAS employee or external collaborator. Nodes are connected if at least one paper is written together. Clicking on a node shows an overview of node properties and the latest three published paper of that person.
 
-Q: What is the required format for papers?
-
-> ⚠️ **Author format (required):** Use initials for first names only; do not use full first names. If a person has multiple first names, abbreviate all initials together without spaces (for example, **A.B. James**).
->
-> Example formats:
->
-> ```text
-> A.B. James
-> J.Doe
-> M.K.J.Smith
-> ```
+> **Q: What is the required format for papers?**
+> Use initials for first names only; do not use full first names. If a person has multiple first names, abbreviate all initials together without spaces (for example, **A.B. James**).
 
 Q: Which papers are considered?
 
