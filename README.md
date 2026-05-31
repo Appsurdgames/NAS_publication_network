@@ -92,7 +92,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ### Now
 
-9a. Create new tab with table of publications. Columns: Authors, Title, Journal, DOI/URL. Allow searching, filtering and sorting for authors, title and journal  (Massimo).
+~9a. Create new tab with table of publications. Columns: Authors, Title, Journal, DOI/URL. Allow searching, filtering and sorting for authors, title and journal  (Massimo).~
 
 9b. Make it mobile-friendly (Roberto)
 

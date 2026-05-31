@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="robots" content="noindex">
+	<title>NAS Publication Network</title>
+	<script src="https://d3js.org/d3.v6.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<style>
+		*, *::before, *::after { box-sizing: border-box; }
+
+		html, body {
+			margin: 0;
+			height: 100%;
+			overflow: hidden;
+			font-family: 'Segoe UI', Arial, sans-serif;
+			background: #f4f7fb;
+			color: #1f2d3d;
+		}
+
+		#app {
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+
+		h1 {
+			text-align: center;
+			margin: 6px 0 4px;
+			font-size: 19px;
+			color: #1a2a3a;
+			letter-spacing: 0.4px;
+			flex: 0 0 auto;
+		}
+
+		.page-tabs {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			margin: 10px auto 16px;
+		}
+
+		.page-tab {
+			padding: 8px 16px;
+			border: 1px solid #d6e2f0;
+			border-radius: 8px;
+			background: #fff;
+			color: #1a2a3a;
+			text-decoration: none;
+			font-size: 13px;
+			font-weight: 600;
+			transition: background 0.15s, color 0.15s, border-color 0.15s;
+		}
+
+		.page-tab:hover {
+			background: #e7f7f2;
+		}
+
+		.page-tab.active {
+			background: #52c9a4;
+			color: #fff;
+			border-color: #52c9a4;
+		}
+
+		#filters {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 10px;
+			margin: 0 auto 14px;
+			max-width: 1040px;
+			padding: 0 12px;
+		}
+		.filter-control {
+			flex: 1 1 220px;
+			min-width: 220px;
+			max-width: 260px;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+		.filter-control label {
+			font-size: 12px;
+			color: #4c5b6a;
+		}
+		.filter-control input {
+			padding: 8px 10px;
+			font-size: 13px;
+			border: 1px solid #c8d4e3;
+			border-radius: 6px;
+			background: #fff;
+			color: #1f2d3d;
+		}
+		.filter-control.filter-action {
+			justify-content: flex-end;
+		}
+		.filter-control.filter-action button {
+			width: 100%;
+			padding: 10px 12px;
+			font-size: 13px;
+			border: none;
+			border-radius: 8px;
+			background: #18A8D5;
+			color: #fff;
+			font-weight: 700;
+			cursor: pointer;
+			transition: background 0.15s ease;
+		}
+		.filter-control.filter-action button:hover {
+			background: #1080a0;
+		}
+		.filter-control input:focus {
+			outline: none;
+			border-color: #52c9a4;
+			box-shadow: 0 0 0 3px rgba(82, 201, 164, 0.13);
+		}
+		.filter-control input:focus {
+			outline: none;
+			border-color: #52c9a4;
+			box-shadow: 0 0 0 3px rgba(82, 201, 164, 0.13);
+		}
+
+		.table-sortable th {
+			cursor: pointer;
+			user-select: none;
+		}
+		.table-sortable th:hover {
+			background: #eef7f1;
+		}
+		.table-sortable th .sort-indicator {
+			margin-left: 6px;
+			font-size: 11px;
+			opacity: 0.72;
+		}
+
+		#loading {
+			text-align: center;
+			padding: 40px;
+			font-size: 16px;
+			color: #7f8a96;
+			flex: 0 0 auto;
+		}
+
+		#tableContainer {
+			flex: 1 1 auto;
+			overflow: auto;
+			padding: 8px 12px 12px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			background: #fff;
+		}
+
+		th, td {
+			padding: 10px 12px;
+			border: 1px solid #e2e8f0;
+			text-align: left;
+			font-size: 13px;
+		}
+
+		th {
+			background: #f7fbff;
+			color: #394959;
+			font-weight: 700;
+		}
+
+		tr:nth-child(even) {
+			background: #fafbfd;
+		}
+
+		@media (max-width: 900px) {
+			th, td { padding: 8px 10px; font-size: 12px; }
+		}
+	</style>
+</head>
+<body>
+<div id="app">
+	<h1>NAS Publication Network</h1>
+	<div class="page-tabs">
+		<a href="network.html" class="page-tab">Network</a>
+		<a href="source_papers.html" class="page-tab active">Table</a>
+	</div>
+	<div id="filters">
+		<div class="filter-control">
+			<label for="filterTitle">Title</label>
+			<input id="filterTitle" type="text" placeholder="Filter by title">
+		</div>
+		<div class="filter-control">
+			<label for="filterAuthors">Authors</label>
+			<input id="filterAuthors" type="text" placeholder="Filter by author">
+		</div>
+		<div class="filter-control">
+			<label for="filterYear">Year</label>
+			<input id="filterYear" type="text" placeholder="Filter by year">
+		</div>
+		<div class="filter-control">
+			<label for="filterJournal">Journal</label>
+			<input id="filterJournal" type="text" placeholder="Filter by journal">
+		</div>
+		<div class="filter-control filter-action">
+			<label>&nbsp;</label>
+			<button id="downloadCsv" type="button">Download all papers as CSV</button>
+		</div>
+	</div>
+	<div id="loading">Loading table...</div>
+	<div id="tableContainer"></div>
+</div>
+<script>
+const LOCATION_EXCEL_PAPERS = '../data/source_papers.xlsx';
+let allRows = [];
+let filterState = {
+	title: '',
+	authors: '',
+	year: '',
+	journal: ''
+};
+let sortState = {
+	column: 'year',
+	direction: -1
+};
+
+function escapeHtml(value) {
+	return String(value || '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
+function buildTable(rows) {
+	const container = document.getElementById('tableContainer');
+	if (!rows.length) {
+		container.innerHTML = '<div style="padding:18px; color:#52606d;">No papers found in source_papers.xlsx.</div>';
+		return;
+	}
+
+	const columns = ['title', 'authors', 'year', 'journal', 'link'];
+	const headerRow = columns.map(col => {
+		const sortable = col !== 'link';
+		const indicator = sortState.column === col ? `<span class="sort-indicator">${sortState.direction === 1 ? '▲' : '▼'}</span>` : '';
+		return `<th ${sortable ? `class="sortable" data-col="${col}"` : ''}>${escapeHtml(col)}${indicator}</th>`;
+	}).join('');
+	const bodyRows = rows.map(row => {
+		const doi = row.doi || row.DOI || '';
+		const doiUrl = doi ? (doi.toLowerCase().startsWith('uuid') ? 'https://resolver.tudelft.nl/' + doi : 'https://doi.org/' + doi) : '';
+		const linkCell = doiUrl ? `<a href="${escapeHtml(doiUrl)}" target="_blank" rel="noopener noreferrer">Open</a>` : '';
+		const cells = [
+			escapeHtml(row.title || ''),
+			escapeHtml(row.authors || ''),
+			escapeHtml(row.year || ''),
+			escapeHtml(row.journal || ''),
+			linkCell
+		].map(cell => `<td>${cell}</td>`).join('');
+		return `<tr>${cells}</tr>`;
+	}).join('');
+
+	container.innerHTML = `
+		<table class="table-sortable">
+			<thead><tr>${headerRow}</tr></thead>
+			<tbody>${bodyRows}</tbody>
+		</table>
+	`;
+
+	Array.from(container.querySelectorAll('th.sortable')).forEach(th => {
+		th.addEventListener('click', () => {
+			const col = th.dataset.col;
+			if (sortState.column === col) {
+				sortState.direction *= -1;
+			} else {
+				sortState.column = col;
+				sortState.direction = 1;
+			}
+			renderTable();
+		});
+	});
+}
+
+function filterRows(rows) {
+	return rows.filter(row => {
+		const title = String(row.title || '').toLowerCase();
+		const authors = String(row.authors || '').toLowerCase();
+		const year = String(row.year || '').toLowerCase();
+		const journal = String(row.journal || '').toLowerCase();
+		return (
+			title.includes(filterState.title) &&
+			authors.includes(filterState.authors) &&
+			year.includes(filterState.year) &&
+			journal.includes(filterState.journal)
+		);
+	});
+}
+
+function sortedRows(rows) {
+	const sorted = rows.slice();
+	sorted.sort((a, b) => {
+		let aValue = String(a[sortState.column] || '').toLowerCase();
+		let bValue = String(b[sortState.column] || '').toLowerCase();
+		if (sortState.column === 'year') {
+			const aNum = parseInt(aValue, 10);
+			const bNum = parseInt(bValue, 10);
+			if (!isNaN(aNum) && !isNaN(bNum)) {
+				return (aNum - bNum) * sortState.direction;
+			}
+		}
+		return aValue.localeCompare(bValue) * sortState.direction;
+	});
+	return sorted;
+}
+
+function renderTable() {
+	const filtered = filterRows(allRows);
+	const sorted = sortedRows(filtered);
+	buildTable(sorted);
+}
+
+function downloadCsv(rows) {
+	const csvColumns = ['title', 'authors', 'year', 'journal', 'doi'];
+	const csvRows = rows.map(row => csvColumns.map(col => {
+		const value = row[col] || row[col.toUpperCase()] || '';
+		return `"${String(value).replace(/"/g, '""')}"`;
+	}).join(';'));
+	const csvText = [csvColumns.join(';'), ...csvRows].join('\r\n');
+	const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = 'source_papers_table.csv';
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	URL.revokeObjectURL(url);
+}
+
+async function init() {
+	try {
+		const res = await fetch(LOCATION_EXCEL_PAPERS);
+		if (!res.ok) throw new Error('Failed to fetch papers');
+		const buf = await res.arrayBuffer();
+		const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+		const ws = wb.Sheets[wb.SheetNames[0]];
+		allRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+		document.getElementById('loading').style.display = 'none';
+		document.getElementById('filterTitle').addEventListener('input', (event) => {
+			filterState.title = event.target.value.toLowerCase();
+			renderTable();
+		});
+		document.getElementById('filterAuthors').addEventListener('input', (event) => {
+			filterState.authors = event.target.value.toLowerCase();
+			renderTable();
+		});
+		document.getElementById('filterYear').addEventListener('input', (event) => {
+			filterState.year = event.target.value.toLowerCase();
+			renderTable();
+		});
+		document.getElementById('filterJournal').addEventListener('input', (event) => {
+			filterState.journal = event.target.value.toLowerCase();
+			renderTable();
+		});
+		document.getElementById('downloadCsv').addEventListener('click', () => {
+			downloadCsv(sortedRows(filterRows(allRows)));
+		});
+		renderTable();
+	} catch (err) {
+		document.getElementById('loading').textContent = 'Failed to load table: ' + err.message;
+		console.error(err);
+	}
+}
+
+init();
+</script>
+</body>
+</html>

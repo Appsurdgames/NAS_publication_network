@@ -85,6 +85,32 @@
 		button:hover { background: #1080a0; }
 		button.active { background: #D54518; }
 
+		.page-tabs {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			margin: 10px auto 16px;
+		}
+		.page-tab {
+			padding: 8px 16px;
+			border: 1px solid #d6e2f0;
+			border-radius: 8px;
+			background: #fff;
+			color: #1a2a3a;
+			text-decoration: none;
+			font-size: 13px;
+			font-weight: 600;
+			transition: background 0.15s, color 0.15s, border-color 0.15s;
+		}
+		.page-tab:hover {
+			background: #e7f7f2;
+		}
+		.page-tab.active {
+			background: #52c9a4;
+			color: #fff;
+			border-color: #52c9a4;
+		}
+
 		#searchBox {
 			padding: 5px 10px;
 			font-size: 13px;
@@ -257,6 +283,10 @@
 <body>
 <div id="app">
 	<h1>NAS Publication Network</h1>
+	<div class="page-tabs">
+		<a href="network.html" class="page-tab active">Network</a>
+		<a href="table.html" class="page-tab">Table</a>
+	</div>
 
 	<div id="controls">
 		<div class="ctrl-group">
