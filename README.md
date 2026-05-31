@@ -43,7 +43,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9e. Add latest papers (Roberto)~
 
-9f. Ask Eric Smeitink to ask paper list (Edgar)
+9f. Ask Eric Smeitink to send paper list (Edgar)
 
 ~9g. Add dissertations as single-author papers (Massimo)~
 
@@ -63,9 +63,15 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9o. Check pictures (Massimo)~
 
-9p. Double-check all papers without any (former) NAS members as authors (Massimo)
+9p. Double-check all papers without any (former) NAS members as authors (Massimo / Edgar)
 
 ~9q. Cleanup repo (Massimo)~
+
+### July 2026
+
+- Final bug fixing
+
+- Ask people to double-check their own publication list
 
 ### August 2026
 

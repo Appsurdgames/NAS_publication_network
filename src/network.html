@@ -308,6 +308,90 @@
 		#chart svg { cursor: grab; }
 		#chart svg:active { cursor: grabbing; }
 
+		.info-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 24px;
+			height: 24px;
+			border-radius: 50%;
+			background: #18A8D5;
+			color: #fff;
+			border: none;
+			cursor: pointer;
+			font-size: 14px;
+			font-weight: 700;
+			transition: background 0.15s;
+			margin-left: 8px;
+		}
+		.info-button:hover { background: #1080a0; }
+
+		#infoModal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 1000;
+			align-items: center;
+			justify-content: center;
+		}
+		#infoModal.open {
+			display: flex;
+		}
+		#infoModal-content {
+			background: #fff;
+			border-radius: 12px;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+			max-width: 600px;
+			width: 90%;
+			max-height: 80vh;
+			overflow-y: auto;
+			padding: 32px;
+			position: relative;
+		}
+		#infoModal-content h2 {
+			margin: 0 0 16px 0;
+			font-size: 22px;
+			color: #1a2a3a;
+		}
+		#infoModal-content h3 {
+			margin: 20px 0 10px 0;
+			font-size: 16px;
+			color: #394959;
+		}
+		#infoModal-content p {
+			margin: 8px 0;
+			line-height: 1.5;
+			color: #52606d;
+			font-size: 14px;
+		}
+		#infoModal-content ul {
+			margin: 8px 0;
+			padding-left: 20px;
+		}
+		#infoModal-content li {
+			margin: 6px 0;
+			color: #52606d;
+			font-size: 14px;
+		}
+		#infoModal-close {
+			position: absolute;
+			top: 12px;
+			right: 12px;
+			background: none;
+			border: none;
+			font-size: 28px;
+			color: #97a6b5;
+			cursor: pointer;
+			padding: 0;
+			width: 32px;
+			height: 32px;
+		}
+		#infoModal-close:hover { color: #D54518; }
+
 		@media (max-width: 1100px) {
 			#detailPanel { width: 300px; }
 			.stat-box { min-width: 112px; }
@@ -350,6 +434,7 @@
 				<button type="button" data-action="nodes">Download nodes CSV</button>
 			</div>
 		</div>
+		<button id="infoButton" class="info-button" type="button" title="Information">i</button>
 	</div>
 
 	<div id="statsBar">
@@ -370,6 +455,38 @@
 	<div id="loading">Loading data...</div>
 	<div id="chart">
 		<div id="detailPanel"></div>
+	</div>
+
+	<div id="infoModal">
+		<div id="infoModal-content">
+			<button id="infoModal-close" type="button">&times;</button>
+			<h2>NAS Publication Network</h2>
+			<p>An interactive visualization of the publication network at the Numerical Analysis and Computational Mechanics (NAS) department at TU Delft.</p>
+
+			<h3>About the Network</h3>
+			<p>Each node represents a researcher. Nodes are connected if they have co-authored at least one paper together. The size of each node indicates the number of papers published by that researcher. The node colours:</p>
+			<ul>
+				<li><strong>Blue nodes:</strong> Current NAS employees</li>
+				<li><strong>Orange nodes:</strong> Former NAS employees</li>
+				<li><strong>Green nodes:</strong> External researchers</li>
+			</ul>
+
+			<h3>How to Use</h3>
+			<p><strong>Explore the network:</strong> Click on any node to view researcher details, papers, and collaborators.</p>
+			<p><strong>Search:</strong> Use the search box to find researchers by name or abbreviation.</p>
+			<p><strong>Filters:</strong></p>
+			<ul>
+				<li><em>Min. shared papers:</em> Show only connections with at least this many co-authored papers</li>
+				<li><em>Min. papers per author:</em> Show only researchers with at least this many publications</li>
+				<li><em>NAS only:</em> Display only current NAS employees</li>
+				<li><em>Show labels:</em> Toggle researcher names on the network</li>
+			</ul>
+
+			<p><strong>Download:</strong> Use the "Download network" dropdown to export the network in JSON or CSV formats for external analysis.</p>
+
+			<h3>Authors</h3>
+			<p>This visualisation was created by Matteo D'Alessandro, Roberto Gheda and Massimo Achterberg. If you have any suggestions, missing papers or other questions, feel free to contact Roberto Gheda: r.gheda@tudelft.nl</p>
+		</div>
 	</div>
 </div>
 
@@ -1180,6 +1297,19 @@ function wireControls() {
 		});
 	});
 	document.addEventListener('click', () => downloadDropdown.classList.remove('open'));
+
+	const infoModal = document.getElementById('infoModal');
+	document.getElementById('infoButton').addEventListener('click', function() {
+		infoModal.classList.add('open');
+	});
+	document.getElementById('infoModal-close').addEventListener('click', function() {
+		infoModal.classList.remove('open');
+	});
+	infoModal.addEventListener('click', function(e) {
+		if (e.target === infoModal) {
+			infoModal.classList.remove('open');
+		}
+	});
 }
 
 async function init() {
