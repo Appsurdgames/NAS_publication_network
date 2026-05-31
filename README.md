@@ -4,7 +4,15 @@ This repository contains a publication network related to the NAS department at 
 
 Q: What is the required format for papers?
 
-A: You can add them to the Excel file. Only use first name letters, no full names. If a person has multiple first names, abbreviate all and do not use a space, e.g. "A.B. James"
+> ⚠️ **Author format (required):** Use initials for first names only; do not use full first names. If a person has multiple first names, abbreviate all initials together without spaces (for example, **A.B. James**).
+>
+> Example formats:
+>
+> ```text
+> A.B. James
+> J.Doe
+> M.K.J.Smith
+> ```
 
 Q: Which papers are considered?
 
@@ -13,6 +21,21 @@ A: Only papers are considered that have been during during the time period the r
 Q: Do master students also appear in this list?
 
 A: if they worked together with a NAS employee at that time and their work led to a publication, they will appear as author on that paper. As such, they will appear as "external researcher" in the tool.
+
+Q: Are there any Joomla settings required?
+
+A: Confirmed working in Joomla 6.0.2 with PHP 8.4.17.
+
+In Joomla, Excel files are not uploadable by default. They should be enabled first.
+
+In the left navigation bar, go to "Content" -> "Media". Click "Options" in the top-right corner.
+
+Allowed extensions: Add "xlsx"
+
+Legal Document Extensions (File Types): Add "xlsx"
+
+Legal MIME Types: Add "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
 
 ## Content
 
@@ -136,50 +159,3 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 - Current implementation of papers only distinguishes between names. People with similar first letters and last name will be (incorrectly) aggregated together. From the list of papers, this is very complicated to add to without completely manually going over this paper by paper.
 
 - Add downloadable bibtex
-
-## Joomla settings
-
-Confirmed working in Joomla 6.0.2 with PHP 8.4.17.
-
-In Joomla, Excel files are not uploadable by default. They should be enabled first.
-
-In the left navigation bar, go to "Content" -> "Media". Click "Options" in the top-right corner.
-
-Allowed extensions: Add "xlsx"
-
-Legal Document Extensions (File Types): Add "xlsx"
-
-Legal MIME Types: Add "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
-## Old requirement list
-
-### Development
-
-- Show a network (with 3dJS) with people as nodes and connect people if they wrote a paper together (Mh)
-- Website hosts an Excel file from which the network is built (Mh)
-- Excel should be easily editable by webmaster (Mh)
-- Excel should be editable by everyone (Ch)
-- Visualisation should match NAS colours (Mh)
-- Less cluttered visualization (Sh)
-- You should be able to interact with the network (drag \& click on nodes) (Mh)
-- Clicking a node shows node information (Mh)
-- Node should have different colours for NAS, ex-NAS and others (Sh)
-- When a node is selected should become orange (not red which indicates former NAS employees) (Sh)
-- Color gradient for seniority (Ch)
-- Search function for names (Sh)
-- Visualisation should have a toggle to show names (tbd)
-- Visualisation should have toggle to show only NAS members (tbd)
-- Network should be downloadable in various formats (Sh)
-- List of papers should be downloadable as bib (Ch)
-- Calculate and show network statistics (Ch)
-- The visualization can also show, on the right of the full network, a subgraph of the selected node
-
-### After development before live:
-- Carefully check papers for correctness (Mh)
-- Update people list with current and former NAS members (Mh)
-- Update paper list (Mh)
-
-### When live
-- Constantly add new papers by website admin (Mh)
-
-

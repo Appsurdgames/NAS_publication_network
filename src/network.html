@@ -85,6 +85,40 @@
 		button:hover { background: #1080a0; }
 		button.active { background: #D54518; }
 
+		.download-dropdown {
+			position: relative;
+			display: inline-block;
+		}
+		.download-dropdown .download-menu {
+			display: none;
+			position: absolute;
+			top: calc(100% + 6px);
+			right: 0;
+			min-width: 190px;
+			background: #fff;
+			border: 1px solid #d6e2f0;
+			border-radius: 8px;
+			box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+			z-index: 50;
+		}
+		.download-dropdown.open .download-menu {
+			display: block;
+		}
+		.download-dropdown .download-menu button {
+			display: block;
+			width: 100%;
+			padding: 10px 14px;
+			background: transparent;
+			color: #1a2a3a;
+			border: none;
+			border-radius: 0;
+			text-align: left;
+			font-size: 13px;
+		}
+		.download-dropdown .download-menu button:hover {
+			background: #eef7fc;
+		}
+
 		.page-tabs {
 			display: flex;
 			justify-content: center;
@@ -308,9 +342,14 @@
 		<button id="toggleLabels">Show labels</button>
 		<button id="toggleNASOnly">NAS only</button>
 		<button id="resetHighlight">Reset</button>
-		<button id="downloadJSON">Download JSON</button>
-		<button id="downloadEdgesCSV">Download edges CSV</button>
-		<button id="downloadNodesCSV">Download nodes CSV</button>
+		<div class="download-dropdown" id="downloadDropdown">
+			<button id="downloadMenuButton" type="button">Download network ▼</button>
+			<div class="download-menu" id="downloadMenu">
+				<button type="button" data-action="json">Download as JSON</button>
+				<button type="button" data-action="edges">Download edges CSV</button>
+				<button type="button" data-action="nodes">Download nodes CSV</button>
+			</div>
+		</div>
 	</div>
 
 	<div id="statsBar">
@@ -1010,10 +1049,23 @@ function exportEdgesCSV() {
 }
 
 function exportNodesCSV() {
-	const lines = ['id;name_abbrev;name;group;num_papers;institutions;position'];
+	const getLastName = (name) => {
+		const parts = String(name || '').trim().split(/\s+/);
+		const remaining = parts.filter((part, index) => {
+			if (index === 0 && /^[A-Za-z](?:\.|$)$/.test(part)) return false;
+			if (index === 0 && /^[A-Za-z]\.[A-Za-z]\.$/.test(part)) return false;
+			return true;
+		});
+		return remaining.length ? remaining.join(' ') : parts.slice(-1)[0] || '';
+	};
+
+	const lines = ['id;name_abbrev;name;last_name;group;num_papers;institutions;position'];
 	lastRendered.visibleNodes.forEach(n => {
 		const safe = (v) => String(v || '').replace(/"/g, '""');
-		lines.push(`${n.id};"${safe(n.name_abbrev)}";"${safe(n.name || n.name_abbrev)}";${n.isUniversity};${n.numPapers};"${safe(n.institutions)}";"${safe(n.position)}"`);
+		const abbrevName = n.name_abbrev || n.name || '';
+		const lastName = getLastName(abbrevName);
+		const fullName = n.name || n.name_abbrev;
+		lines.push(`${n.id};"${safe(n.name_abbrev)}";"${safe(fullName)}";"${safe(lastName)}";${n.isUniversity};${n.numPapers};"${safe(n.institutions)}";"${safe(n.position)}"`);
 	});
 	downloadTextFile('nas_network_nodes.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
 }
@@ -1111,9 +1163,23 @@ function wireControls() {
 		hoveredNodeName = null;
 		draw();
 	});
-	document.getElementById('downloadJSON').addEventListener('click', exportJSON);
-	document.getElementById('downloadEdgesCSV').addEventListener('click', exportEdgesCSV);
-	document.getElementById('downloadNodesCSV').addEventListener('click', exportNodesCSV);
+
+	const downloadDropdown = document.getElementById('downloadDropdown');
+	const downloadMenu = document.getElementById('downloadMenu');
+	document.getElementById('downloadMenuButton').addEventListener('click', function(event) {
+		event.stopPropagation();
+		downloadDropdown.classList.toggle('open');
+	});
+	downloadMenu.querySelectorAll('button[data-action]').forEach(button => {
+		button.addEventListener('click', function() {
+			downloadDropdown.classList.remove('open');
+			const action = this.dataset.action;
+			if (action === 'json') exportJSON();
+			else if (action === 'edges') exportEdgesCSV();
+			else if (action === 'nodes') exportNodesCSV();
+		});
+	});
+	document.addEventListener('click', () => downloadDropdown.classList.remove('open'));
 }
 
 async function init() {
