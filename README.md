@@ -59,7 +59,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9m. Optimise edge selection algorithm from O(N2) to O(L) (Roberto)~
 
-9n. Green nodes are overlapping (Roberto)
+~9n. Green nodes are overlapping (Roberto)~
 
 ~9o. Check pictures (Massimo)~
 

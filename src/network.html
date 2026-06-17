@@ -694,7 +694,10 @@ function assignPositions() {
 	function placeRing(arr, radius, startOffset) {
 		if (!arr.length) return;
 		arr.forEach((nd, i) => {
-			const angle = (2 * Math.PI * i) / arr.length - Math.PI / 2 + startOffset;
+			const angle = (2 * Math.PI * i) / (arr.length % 200) - Math.PI / 2 + startOffset;
+			if (i % 200 == 0) {
+				radius *= 1.1;
+			}
 			nd.x = CX + radius * Math.cos(angle);
 			nd.y = CY + radius * Math.sin(angle);
 			nd.angle = angle;
