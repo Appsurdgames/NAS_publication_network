@@ -173,37 +173,92 @@
 		@media (max-width: 900px) {
 			th, td { padding: 8px 10px; font-size: 12px; }
 		}
+
+		/* Mobile Sidebar & Toggle Styles */
+		#mobileMenuBtn {
+			display: none;
+			position: fixed;
+			top: 10px;
+			left: 10px;
+			z-index: 1000;
+			background: #18A8D5;
+			color: white;
+			border: none;
+			padding: 8px 12px;
+			border-radius: 6px;
+			font-size: 14px;
+			font-weight: bold;
+			box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+		}
+		#mobileMenuBtn:hover { background: #1080a0; }
+
+		#headerArea {
+			flex: 0 0 auto;
+			display: flex;
+			flex-direction: column;
+		}
+
+		@media (max-width: 1000px) {
+			#mobileMenuBtn { display: block; }
+			#app { padding-top: 45px; } /* Prevent table overlapping with button */
+			#headerArea {
+				position: fixed;
+				top: 0;
+				left: -320px;
+				width: 280px;
+				height: 100vh;
+				background: #ffffff;
+				z-index: 999;
+				transition: left 0.3s ease;
+				overflow-y: auto;
+				box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+				padding-top: 50px;
+				border-right: 1px solid #dbe4ef;
+			}
+			#headerArea.open { left: 0; }
+			
+			/* Stack header elements vertically inside sidebar */
+			#filters { flex-direction: column; align-items: stretch; margin: 0; padding: 10px 14px; }
+			.filter-control { max-width: 100%; }
+			.page-tabs { flex-direction: column; gap: 6px; margin: 0 14px 10px; }
+			.page-tab { text-align: center; }
+		}
 	</style>
 </head>
 <body>
 <div id="app">
-	<h1>NAS Publication Network</h1>
-	<div class="page-tabs">
-		<a href="network.html" class="page-tab">Network</a>
-		<a href="source_papers.html" class="page-tab active">Table</a>
+	<button id="mobileMenuBtn">☰ Menu</button>
+	
+	<div id="headerArea">
+		<h1>NAS Publication Network</h1>
+		<div class="page-tabs">
+			<a href="network.html" class="page-tab">Network</a>
+			<a href="source_papers.html" class="page-tab active">Table</a>
+		</div>
+		<div id="filters">
+			<div class="filter-control">
+				<label for="filterTitle">Title</label>
+				<input id="filterTitle" type="text" placeholder="Filter by title">
+			</div>
+			<div class="filter-control">
+				<label for="filterAuthors">Authors</label>
+				<input id="filterAuthors" type="text" placeholder="Filter by author">
+			</div>
+			<div class="filter-control">
+				<label for="filterYear">Year</label>
+				<input id="filterYear" type="text" placeholder="Filter by year">
+			</div>
+			<div class="filter-control">
+				<label for="filterJournal">Journal</label>
+				<input id="filterJournal" type="text" placeholder="Filter by journal">
+			</div>
+			<div class="filter-control filter-action">
+				<label>&nbsp;</label>
+				<button id="downloadCsv" type="button">Download all papers as CSV</button>
+			</div>
+		</div>
 	</div>
-	<div id="filters">
-		<div class="filter-control">
-			<label for="filterTitle">Title</label>
-			<input id="filterTitle" type="text" placeholder="Filter by title">
-		</div>
-		<div class="filter-control">
-			<label for="filterAuthors">Authors</label>
-			<input id="filterAuthors" type="text" placeholder="Filter by author">
-		</div>
-		<div class="filter-control">
-			<label for="filterYear">Year</label>
-			<input id="filterYear" type="text" placeholder="Filter by year">
-		</div>
-		<div class="filter-control">
-			<label for="filterJournal">Journal</label>
-			<input id="filterJournal" type="text" placeholder="Filter by journal">
-		</div>
-		<div class="filter-control filter-action">
-			<label>&nbsp;</label>
-			<button id="downloadCsv" type="button">Download all papers as CSV</button>
-		</div>
-	</div>
+
 	<div id="loading">Loading table...</div>
 	<div id="tableContainer"></div>
 </div>
@@ -340,7 +395,7 @@ async function init() {
 		if (!res.ok) throw new Error('Failed to fetch papers');
 		const buf = await res.arrayBuffer();
 		const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
-		const ws = wb.Sheets[wb.SheetNames[0]];
+		const ws = wb.Sheets[wb.SheetNames];
 		allRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
 		document.getElementById('loading').style.display = 'none';
 		document.getElementById('filterTitle').addEventListener('input', (event) => {
@@ -362,6 +417,21 @@ async function init() {
 		document.getElementById('downloadCsv').addEventListener('click', () => {
 			downloadCsv(sortedRows(filterRows(allRows)));
 		});
+
+		// Sidebar toggle logic for mobile
+		document.getElementById('mobileMenuBtn').addEventListener('click', function(e) {
+			e.stopPropagation();
+			document.getElementById('headerArea').classList.toggle('open');
+		});
+
+		// Close sidebar when clicking outside of it
+		document.addEventListener('click', function(e) {
+			const header = document.getElementById('headerArea');
+			if (window.innerWidth <= 1000 && header.classList.contains('open') && !header.contains(e.target)) {
+				header.classList.remove('open');
+			}
+		});
+
 		renderTable();
 	} catch (err) {
 		document.getElementById('loading').textContent = 'Failed to load table: ' + err.message;
