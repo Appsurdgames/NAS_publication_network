@@ -283,7 +283,7 @@ function escapeHtml(value) {
 function buildTable(rows) {
 	const container = document.getElementById('tableContainer');
 	if (!rows.length) {
-		container.innerHTML = '<div style="padding:18px; color:#52606d;">No papers found in source_papers.xlsx.</div>';
+		container.innerHTML = '<div style="padding:18px; color:#52606d;">No papers found. Please try changing the filter.</div>';
 		return;
 	}
 
