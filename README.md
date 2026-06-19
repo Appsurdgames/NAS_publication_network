@@ -43,7 +43,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9e. Add latest papers (Roberto)~
 
-9f. Ask Eric Smeitink to send paper list (Edgar)
+~9f. Ask Eric Smeitink to send paper list (Edgar)~
 
 ~9g. Add dissertations as single-author papers (Massimo)~
 
@@ -67,6 +67,19 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9q. Cleanup repo (Massimo)~
 
+9r. Clarify everywhere:
+- Former MSc students is new category
+- Mention this in README of repo and info button
+- External = never affiliated with NAS
+- Node colour = last known status
+- Only contains papers written during period at NAS
+
+9r. Send list of MSc students (Edgar)
+
+9s. Fix Chrome-specific issues (Roberto)
+
+
+
 ### July 2026
 
 - Final bug fixing
@@ -82,6 +95,8 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 - Current implementation of papers only distinguishes between names. People with similar first letters and last name will be (incorrectly) aggregated together. From the list of papers, this is very complicated to add to without completely manually going over this paper by paper.
 
 - Add downloadable bibtex
+
+- Make a different network embedding. Pay attention to isolated nodes / subgraphs, as there are many.
 
 ### May 2026
 
