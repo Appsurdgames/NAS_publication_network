@@ -53,9 +53,9 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9j. Rename "recent" to "latest" papers and remove the number (Massimo)~
 
-9k. Add (former) NAS members without publications as isolated nodes (Matteo)
+~9k. Add (former) NAS members without publications as isolated nodes (Matteo)~
 
-9l. Check performance and bugs (disappearing network & failing to select/deselect nodes) (Matteo)
+~9l. Check performance and bugs (disappearing network & failing to select/deselect nodes) (Matteo)~
 
 ~9m. Optimise edge selection algorithm from O(N2) to O(L) (Roberto)~
 
@@ -74,10 +74,13 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 - Node colour = last known status
 - Only contains papers written during period at NAS
 
-9r. Send list of MSc students (Edgar)
+9s. Send list of MSc students (Edgar)
 
-9s. Fix Chrome-specific issues (Roberto)
+9t. Fix Chrome-specific issues (Roberto)
 
+9u. const angle = (2 * Math.PI * i) / (arr.length % 200) - Math.PI / 2 + startOffset; should be replaced with a non-hard coded angle
+
+9v. The code injects data with links which may cause security issues. The security of the visualization can be discussed.
 
 
 ### July 2026
