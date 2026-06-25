@@ -469,8 +469,8 @@
 			</div>
 			<div class="ctrl-group">
 				<label>Min. papers per author:</label>
-				<input type="range" id="nodeThreshold" min="1" max="15" value="1">
-				<span class="badge" id="nodeThresholdVal">1</span>
+				<input type="range" id="nodeThreshold" min="0" max="15" value="0">
+				<span class="badge" id="nodeThresholdVal">0</span>
 			</div>
 			<div class="ctrl-group">
 				<div id="searchWrapper">
@@ -638,7 +638,8 @@ async function fetchPeople() {
 	if (!res.ok) throw new Error('Failed to fetch people');
 	const buf = await res.arrayBuffer();
 	const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
-	const ws = wb.Sheets[wb.SheetNames];
+	//const ws = wb.Sheets[wb.SheetNames];
+	const ws = wb.Sheets[wb.SheetNames[0]];
 	nodes = XLSX.utils.sheet_to_json(ws);
 	nodes.forEach((p, i) => {
 		p.id = 10000 + i;
@@ -656,7 +657,7 @@ async function fetchPapers() {
 	if (!res.ok) throw new Error('Failed to fetch papers');
 	const buf = await res.arrayBuffer();
 	const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
-	const ws = wb.Sheets[wb.SheetNames];
+	const ws = wb.Sheets[wb.SheetNames[0]];
 	jsonPapers = XLSX.utils.sheet_to_json(ws);
 	jsonPapers.forEach(p => {
 		p.authorList = String(p.authors || '').split(',').map(a => a.trim()).filter(Boolean);
@@ -831,7 +832,7 @@ function updateDetailPanel(node, pinMode) {
 		${node.institutions ? `<span style="color:#718395">${node.institutions}</span><br>` : ''}
 		${node.position && node.isUniversity === 1 ? `Position: ${node.position}<br>` : ''}
 		Papers: <b>${node.numPapers}</b> &nbsp;|&nbsp; Collaborators: <b>${collabNames.length}</b>
-		<div class="section"><b>Latest papers</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
+		<div class="section"><b>Latest papers in NAS</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
 		<div class="section"><b>Collaborators (click to navigate)</b><br>${collabHtml}</div>
 	`;
 	detailPanel.classList.toggle('pinned', !!pinMode);
