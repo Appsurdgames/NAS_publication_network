@@ -31,6 +31,43 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ## Planning
 
+### July 2026
+
+10a. Check missing dissertations (Edgar)
+
+10b. Double-check all papers without any (former) NAS members as authors (Massimo / Edgar)
+
+10c. Clarify everywhere (Massimo):
+- Former MSc students is new category
+- Mention this in README of repo and info button
+- External = never affiliated with NAS
+- Node colour = last known status
+- Only contains papers written during period at NAS
+
+10d. Send list of MSc students (Edgar)
+
+10e. Fix Chrome-specific issues (Roberto)
+
+10f. const angle = (2 * Math.PI * i) / (arr.length % 200) - Math.PI / 2 + startOffset; should be replaced with a non-hard coded angle
+
+10g. The code injects data with links which may cause security issues. The security of the visualization can be discussed.
+
+10h. Ask people to double-check their own publication list
+
+### August 2026
+
+- Go live!
+
+### Known bugs / ideas:
+
+- Current implementation of papers only distinguishes between names. People with similar first letters and last name will be (incorrectly) aggregated together. From the list of papers, this is very complicated to add to without completely manually going over this paper by paper.
+
+- Add downloadable bibtex
+
+- Make a different network embedding. Pay attention to isolated nodes / subgraphs, as there are many.
+
+- Do network analysis.
+
 ### June 2026
 
 ~9a. Create new tab with table of publications. Columns: Authors, Title, Journal, DOI/URL. Allow searching, filtering and sorting for authors, title and journal  (Massimo).~
@@ -39,15 +76,13 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9c. Clean Rob's and Nico Bakens' papers manually. (Massimo)~
 
-9d. Go over former and external researchers to see if we missed any NAS members (Edgar)
+~9d. Go over former and external researchers to see if we missed any NAS members (Edgar)~
 
 ~9e. Add latest papers (Roberto)~
 
 ~9f. Ask Eric Smeitink to send paper list (Edgar)~
 
 ~9g. Add dissertations as single-author papers (Massimo)~
-
-9h. Check missing dissertations (Edgar)
 
 ~9i. Make CSVs export using ; instead of , (Massimo)~
 
@@ -63,43 +98,7 @@ All papers have been checked on title in the Scopus database, also see `data/_ve
 
 ~9o. Check pictures (Massimo)~
 
-9p. Double-check all papers without any (former) NAS members as authors (Massimo / Edgar)
-
 ~9q. Cleanup repo (Massimo)~
-
-9r. Clarify everywhere:
-- Former MSc students is new category
-- Mention this in README of repo and info button
-- External = never affiliated with NAS
-- Node colour = last known status
-- Only contains papers written during period at NAS
-
-9s. Send list of MSc students (Edgar)
-
-9t. Fix Chrome-specific issues (Roberto)
-
-9u. const angle = (2 * Math.PI * i) / (arr.length % 200) - Math.PI / 2 + startOffset; should be replaced with a non-hard coded angle
-
-9v. The code injects data with links which may cause security issues. The security of the visualization can be discussed.
-
-
-### July 2026
-
-- Final bug fixing
-
-- Ask people to double-check their own publication list
-
-### August 2026
-
-- Go live!
-
-### Known bugs / ideas:
-
-- Current implementation of papers only distinguishes between names. People with similar first letters and last name will be (incorrectly) aggregated together. From the list of papers, this is very complicated to add to without completely manually going over this paper by paper.
-
-- Add downloadable bibtex
-
-- Make a different network embedding. Pay attention to isolated nodes / subgraphs, as there are many.
 
 ### May 2026
 
