@@ -9,13 +9,60 @@
 	<style>
 		*, *::before, *::after { box-sizing: border-box; }
 
+		:root {
+			--bg-page: #f4f7fb;
+			--text-page: #1f2d3d;
+			--text-strong: #1a2a3a;
+			--text-muted: #4c5b6a;
+			--text-faint: #7f8a96;
+			--surface-1: #ffffff;
+			--surface-1-alt: #f7fbff;
+			--surface-2: #ffffff;
+			--border-1: #dbe4ef;
+			--border-2: #d6e2f0;
+			--border-3: #e2e8f0;
+			--border-4: #c8d4e3;
+			--input-bg: #ffffff;
+			--hover-tab: #e7f7f2;
+			--hover-th: #eef7f1;
+			--row-alt: #fafbfd;
+			--th-text: #394959;
+			--link-color: #18A8D5;
+			--shadow-mobile-btn: rgba(0,0,0,0.15);
+			--shadow-sidebar: rgba(0,0,0,0.1);
+		}
+
+		:root[data-theme="dark"] {
+			--bg-page: #0f1620;
+			--text-page: #d7e1ec;
+			--text-strong: #eef3fa;
+			--text-muted: #9fb0c4;
+			--text-faint: #93a6bc;
+			--surface-1: #141b26;
+			--surface-1-alt: #141b26;
+			--surface-2: #1a2230;
+			--border-1: #263344;
+			--border-2: #2c3a4d;
+			--border-3: #263344;
+			--border-4: #2c3a4d;
+			--input-bg: #141b26;
+			--hover-tab: #16332c;
+			--hover-th: #1c2836;
+			--row-alt: #171f2b;
+			--th-text: #c3d0e0;
+			--link-color: #6fd1ef;
+			--shadow-mobile-btn: rgba(0,0,0,0.4);
+			--shadow-sidebar: rgba(0,0,0,0.5);
+		}
+
 		html, body {
 			margin: 0;
 			height: 100%;
 			overflow: hidden;
 			font-family: 'Segoe UI', Arial, sans-serif;
-			background: #f4f7fb;
-			color: #1f2d3d;
+			background: var(--bg-page);
+			color: var(--text-page);
+			transition: background 0.15s, color 0.15s;
 		}
 
 		#app {
@@ -28,7 +75,7 @@
 			text-align: center;
 			margin: 6px 0 4px;
 			font-size: 1.1875rem;
-			color: #1a2a3a;
+			color: var(--text-strong);
 			letter-spacing: 0.4px;
 			flex: 0 0 auto;
 		}
@@ -36,16 +83,17 @@
 		.page-tabs {
 			display: flex;
 			justify-content: center;
+			align-items: center;
 			gap: 10px;
 			margin: 10px auto 16px;
 		}
 
 		.page-tab {
 			padding: 8px 16px;
-			border: 1px solid #d6e2f0;
+			border: 1px solid var(--border-2);
 			border-radius: 8px;
-			background: #fff;
-			color: #1a2a3a;
+			background: var(--surface-2);
+			color: var(--text-strong);
 			text-decoration: none;
 			font-size: 0.8125rem;
 			font-weight: 600;
@@ -53,7 +101,7 @@
 		}
 
 		.page-tab:hover {
-			background: #e7f7f2;
+			background: var(--hover-tab);
 		}
 
 		.page-tab.active {
@@ -61,6 +109,19 @@
 			color: #fff;
 			border-color: #52c9a4;
 		}
+
+		#themeToggle {
+			padding: 8px 16px;
+			border: none;
+			border-radius: 8px;
+			background: #18A8D5;
+			color: #fff;
+			font-size: 0.8125rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background 0.15s;
+		}
+		#themeToggle:hover { background: #1080a0; }
 
 		#filters {
 			display: flex;
@@ -81,15 +142,15 @@
 		}
 		.filter-control label {
 			font-size: 0.75rem;
-			color: #4c5b6a;
+			color: var(--text-muted);
 		}
 		.filter-control input {
 			padding: 8px 10px;
 			font-size: 0.8125rem;
-			border: 1px solid #c8d4e3;
+			border: 1px solid var(--border-4);
 			border-radius: 6px;
-			background: #fff;
-			color: #1f2d3d;
+			background: var(--input-bg);
+			color: var(--text-page);
 		}
 		.filter-control.filter-action {
 			justify-content: flex-end;
@@ -120,7 +181,7 @@
 			user-select: none;
 		}
 		.table-sortable th:hover {
-			background: #eef7f1;
+			background: var(--hover-th);
 		}
 		.table-sortable th .sort-indicator {
 			margin-left: 6px;
@@ -132,7 +193,7 @@
 			text-align: center;
 			padding: 40px;
 			font-size: 1rem;
-			color: #7f8a96;
+			color: var(--text-faint);
 			flex: 0 0 auto;
 		}
 
@@ -145,24 +206,28 @@
 		table {
 			width: 100%;
 			border-collapse: collapse;
-			background: #fff;
+			background: var(--surface-2);
 		}
 
 		th, td {
 			padding: 10px 12px;
-			border: 1px solid #e2e8f0;
+			border: 1px solid var(--border-3);
 			text-align: left;
 			font-size: 0.8125rem;
 		}
 
 		th {
-			background: #f7fbff;
-			color: #394959;
+			background: var(--surface-1-alt);
+			color: var(--th-text);
 			font-weight: 700;
 		}
 
 		tr:nth-child(even) {
-			background: #fafbfd;
+			background: var(--row-alt);
+		}
+
+		#tableContainer a {
+			color: var(--link-color);
 		}
 
 		@media (max-width: 900px) {
@@ -183,7 +248,7 @@
 			border-radius: 6px;
 			font-size: 0.875rem;
 			font-weight: bold;
-			box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+			box-shadow: 0 2px 6px var(--shadow-mobile-btn);
 		}
 		#mobileMenuBtn:hover { background: #1080a0; }
 
@@ -202,33 +267,35 @@
 				left: -320px;
 				width: 280px;
 				height: 100vh;
-				background: #ffffff;
+				background: var(--surface-1);
 				z-index: 999;
 				transition: left 0.3s ease;
 				overflow-y: auto;
-				box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+				box-shadow: 4px 0 15px var(--shadow-sidebar);
 				padding-top: 50px;
-				border-right: 1px solid #dbe4ef;
+				border-right: 1px solid var(--border-1);
 			}
 			#headerArea.open { left: 0; }
-			
+
 			/* Stack header elements vertically inside sidebar */
 			#filters { flex-direction: column; align-items: stretch; margin: 0; padding: 10px 14px; }
 			.filter-control { max-width: 100%; }
 			.page-tabs { flex-direction: column; gap: 6px; margin: 0 14px 10px; }
 			.page-tab { text-align: center; }
+			#themeToggle { width: 100%; }
 		}
 	</style>
 </head>
 <body>
 <div id="app">
 	<button id="mobileMenuBtn">☰ Menu</button>
-	
+
 	<div id="headerArea">
 		<h1>NAS Publication Network</h1>
 		<div class="page-tabs">
 			<a href="network.html" class="page-tab">Network</a>
-			<a href="source_papers.html" class="page-tab active">Table</a>
+			<a href="table.html" class="page-tab active">Table</a>
+			<button id="themeToggle" type="button">Dark theme</button>
 		</div>
 		<div id="filters">
 			<div class="filter-control">
@@ -258,6 +325,14 @@
 	<div id="tableContainer"></div>
 </div>
 <script>
+// Applied as early as possible (before first paint) to avoid a light-theme
+// flash, and to stay in sync with whichever theme was last chosen on the
+// network page (both pages share the same localStorage key).
+(function initTheme() {
+	const saved = localStorage.getItem('nas-network-theme');
+	document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+})();
+
 const LOCATION_EXCEL_PAPERS = '../data/source_papers.xlsx';
 let allRows = [];
 let filterState = {
@@ -283,15 +358,16 @@ function escapeHtml(value) {
 function buildTable(rows) {
 	const container = document.getElementById('tableContainer');
 	if (!rows.length) {
-		container.innerHTML = '<div style="padding:18px; color:#52606d;">No papers found. Please try changing the filter.</div>';
+		container.innerHTML = '<div style="padding:18px; color:var(--text-muted);">No papers found. Please try changing the filter.</div>';
 		return;
 	}
 
 	const columns = ['title', 'authors', 'year', 'journal', 'link'];
 	const headerRow = columns.map(col => {
 		const sortable = col !== 'link';
+		const label = col.charAt(0).toUpperCase() + col.slice(1);
 		const indicator = sortState.column === col ? `<span class="sort-indicator">${sortState.direction === 1 ? '▲' : '▼'}</span>` : '';
-		return `<th ${sortable ? `class="sortable" data-col="${col}"` : ''}>${escapeHtml(col)}${indicator}</th>`;
+		return `<th ${sortable ? `class="sortable" data-col="${col}"` : ''}>${escapeHtml(label)}${indicator}</th>`;
 	}).join('');
 	const bodyRows = rows.map(row => {
 		const doi = row.doi || row.DOI || '';
@@ -384,8 +460,24 @@ function downloadCsv(rows) {
 	URL.revokeObjectURL(url);
 }
 
+function syncThemeButton() {
+	const btn = document.getElementById('themeToggle');
+	if (!btn) return;
+	const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+	btn.textContent = isDark ? 'Light theme' : 'Dark theme';
+}
+
 async function init() {
 	try {
+		syncThemeButton();
+		document.getElementById('themeToggle').addEventListener('click', function() {
+			const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+			const next = isDark ? 'light' : 'dark';
+			document.documentElement.setAttribute('data-theme', next);
+			localStorage.setItem('nas-network-theme', next);
+			syncThemeButton();
+		});
+
 		const res = await fetch(LOCATION_EXCEL_PAPERS);
 		if (!res.ok) throw new Error('Failed to fetch papers');
 		const buf = await res.arrayBuffer();

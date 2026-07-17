@@ -9,13 +9,94 @@
 	<style>
 		*, *::before, *::after { box-sizing: border-box; }
 
+		:root {
+			--bg-page: #f4f7fb;
+			--text-page: #1f2d3d;
+			--text-strong: #1a2a3a;
+			--text-muted: #4c5b6a;
+			--text-faint: #7f8a96;
+			--surface-1: #ffffff;
+			--surface-1-alt: #f7fbff;
+			--surface-2: #ffffff;
+			--border-1: #dbe4ef;
+			--border-2: #d6e2f0;
+			--border-3: #b0c4d8;
+			--border-4: #c8d4e3;
+			--input-bg: #ffffff;
+			--hover-tab: #e7f7f2;
+			--hover-dropdown: #e8f4f8;
+			--hover-download: #eef7fc;
+			--node-label-fill: #1a2a3a;
+			--node-stroke: #ffffff;
+			--edge-stroke: #b0bec5;
+			--ring-guide-stroke: #dde3ec;
+			--footnote-fill-1: #7f8da0;
+			--footnote-fill-2: #8a97a8;
+			--legend-fill: #1a2a3a;
+			--collab-bg: #eef7fc;
+			--collab-fg: #136f8c;
+			--collab-hover-bg: #d9edf8;
+			--detail-muted: #718395;
+			--detail-nocollab: #8fa0b0;
+			--paper-item-color: #394959;
+			--close-color: #97a6b5;
+			--shadow-soft: rgba(0,0,0,0.08);
+			--shadow-med: rgba(0,0,0,0.1);
+			--shadow-strong: rgba(0,0,0,0.12);
+			--shadow-modal-bg: rgba(0,0,0,0.5);
+			--shadow-modal-content: rgba(0,0,0,0.3);
+			--shadow-mobile-btn: rgba(0,0,0,0.15);
+			--shadow-sidebar: rgba(0,0,0,0.1);
+		}
+
+		:root[data-theme="dark"] {
+			--bg-page: #0f1620;
+			--text-page: #d7e1ec;
+			--text-strong: #eef3fa;
+			--text-muted: #9fb0c4;
+			--text-faint: #93a6bc;
+			--surface-1: #141b26;
+			--surface-1-alt: #141b26;
+			--surface-2: #1a2230;
+			--border-1: #263344;
+			--border-2: #2c3a4d;
+			--border-3: #2c3a4d;
+			--border-4: #2c3a4d;
+			--input-bg: #141b26;
+			--hover-tab: #16332c;
+			--hover-dropdown: #223244;
+			--hover-download: #223244;
+			--node-label-fill: #eef3fa;
+			--node-stroke: #0f1620;
+			--edge-stroke: #8494a8;
+			--ring-guide-stroke: #26313f;
+			--footnote-fill-1: #8ea0b6;
+			--footnote-fill-2: #8ea0b6;
+			--legend-fill: #dbe6f2;
+			--collab-bg: #1c3140;
+			--collab-fg: #6fd1ef;
+			--collab-hover-bg: #244356;
+			--detail-muted: #9fb0c4;
+			--detail-nocollab: #8ea0b6;
+			--paper-item-color: #b7c5d6;
+			--close-color: #8ea0b6;
+			--shadow-soft: rgba(0,0,0,0.4);
+			--shadow-med: rgba(0,0,0,0.5);
+			--shadow-strong: rgba(0,0,0,0.5);
+			--shadow-modal-bg: rgba(0,0,0,0.7);
+			--shadow-modal-content: rgba(0,0,0,0.6);
+			--shadow-mobile-btn: rgba(0,0,0,0.4);
+			--shadow-sidebar: rgba(0,0,0,0.5);
+		}
+
 		html, body {
 			margin: 0;
 			height: 100%;
 			overflow: hidden;
 			font-family: 'Segoe UI', Arial, sans-serif;
-			background: #f4f7fb;
-			color: #1f2d3d;
+			background: var(--bg-page);
+			color: var(--text-page);
+			transition: background 0.15s, color 0.15s;
 		}
 
 		#app {
@@ -26,9 +107,9 @@
 
 		h1 {
 			text-align: center;
-			margin: 6px 0 4px;
+			margin: 4px 0 2px;
 			font-size: 1.1875rem;
-			color: #1a2a3a;
+			color: var(--text-strong);
 			letter-spacing: 0.4px;
 			flex: 0 0 auto;
 		}
@@ -39,10 +120,10 @@
 			justify-content: center;
 			align-items: center;
 			gap: 8px 14px;
-			padding: 8px 14px;
-			background: #ffffff;
-			border-top: 1px solid #dbe4ef;
-			border-bottom: 1px solid #dbe4ef;
+			padding: 5px 14px;
+			background: var(--surface-1);
+			border-top: 1px solid var(--border-1);
+			border-bottom: 1px solid var(--border-1);
 			flex: 0 0 auto;
 		}
 
@@ -53,7 +134,7 @@
 			font-size: 0.8125rem;
 		}
 
-		.ctrl-group label { color: #4c5b6a; white-space: nowrap; }
+		.ctrl-group label { color: var(--text-muted); white-space: nowrap; }
 
 		input[type=range] {
 			width: 110px;
@@ -85,6 +166,19 @@
 		button:hover { background: #1080a0; }
 		button.active { background: #D54518; }
 
+		#themeToggle {
+			padding: 8px 16px;
+			border: none;
+			border-radius: 8px;
+			background: #18A8D5;
+			color: #fff;
+			font-size: 0.8125rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background 0.15s;
+		}
+		#themeToggle:hover { background: #1080a0; }
+
 		.download-dropdown {
 			position: relative;
 			display: inline-block;
@@ -95,10 +189,10 @@
 			top: calc(100% + 6px);
 			right: 0;
 			min-width: 190px;
-			background: #fff;
-			border: 1px solid #d6e2f0;
+			background: var(--surface-2);
+			border: 1px solid var(--border-2);
 			border-radius: 8px;
-			box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+			box-shadow: 0 12px 24px var(--shadow-soft);
 			z-index: 50;
 		}
 		.download-dropdown.open .download-menu {
@@ -109,35 +203,36 @@
 			width: 100%;
 			padding: 10px 14px;
 			background: transparent;
-			color: #1a2a3a;
+			color: var(--text-strong);
 			border: none;
 			border-radius: 0;
 			text-align: left;
 			font-size: 0.8125rem;
 		}
 		.download-dropdown .download-menu button:hover {
-			background: #eef7fc;
+			background: var(--hover-download);
 		}
 
 		.page-tabs {
 			display: flex;
 			justify-content: center;
+			align-items: center;
 			gap: 10px;
-			margin: 10px auto 16px;
+			margin: 6px auto 8px;
 		}
 		.page-tab {
 			padding: 8px 16px;
-			border: 1px solid #d6e2f0;
+			border: 1px solid var(--border-2);
 			border-radius: 8px;
-			background: #fff;
-			color: #1a2a3a;
+			background: var(--surface-2);
+			color: var(--text-strong);
 			text-decoration: none;
 			font-size: 0.8125rem;
 			font-weight: 600;
 			transition: background 0.15s, color 0.15s, border-color 0.15s;
 		}
 		.page-tab:hover {
-			background: #e7f7f2;
+			background: var(--hover-tab);
 		}
 		.page-tab.active {
 			background: #52c9a4;
@@ -148,9 +243,11 @@
 		#searchBox {
 			padding: 5px 10px;
 			font-size: 0.8125rem;
-			border: 1px solid #c8d4e3;
+			border: 1px solid var(--border-4);
 			border-radius: 5px;
 			width: 170px;
+			background: var(--input-bg);
+			color: var(--text-page);
 		}
 		#searchBox:focus { outline: none; border-color: #18A8D5; }
 
@@ -160,15 +257,15 @@
 			top: 100%;
 			left: 0;
 			right: 0;
-			background: #fff;
-			border: 1px solid #b0c4d8;
+			background: var(--surface-2);
+			border: 1px solid var(--border-3);
 			border-top: none;
 			border-radius: 0 0 6px 6px;
 			max-height: 210px;
 			overflow-y: auto;
 			z-index: 200;
 			display: none;
-			box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+			box-shadow: 0 4px 12px var(--shadow-med);
 			min-width: 170px;
 		}
 		.dropdown-item {
@@ -178,38 +275,39 @@
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
+			color: var(--text-page);
 		}
-		.dropdown-item:hover { background: #e8f4f8; }
+		.dropdown-item:hover { background: var(--hover-dropdown); }
 		.dropdown-item .match { font-weight: bold; color: #18A8D5; }
 
 		#statsBar {
 			display: flex;
 			justify-content: center;
 			gap: 10px;
-			padding: 6px 8px;
-			background: #f7fbff;
-			border-bottom: 1px solid #e2ebf5;
+			padding: 4px 8px;
+			background: var(--surface-1-alt);
+			border-bottom: 1px solid var(--border-1);
 			flex: 0 0 auto;
 		}
 
 		.stat-box {
-			background: #ffffff;
-			border: 1px solid #d6e2f0;
+			background: var(--surface-2);
+			border: 1px solid var(--border-2);
 			border-radius: 8px;
-			padding: 5px 10px;
+			padding: 3px 10px;
 			min-width: 126px;
 			text-align: center;
 		}
 		.stat-label {
 			font-size: 0.6875rem;
-			color: #5f6f81;
+			color: var(--text-faint);
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
 		}
 		.stat-value {
 			font-size: 1.125rem;
 			font-weight: 700;
-			color: #1a2a3a;
+			color: var(--text-strong);
 			line-height: 1.2;
 		}
 
@@ -217,7 +315,7 @@
 			text-align: center;
 			padding: 40px;
 			font-size: 1rem;
-			color: #7f8a96;
+			color: var(--text-faint);
 			flex: 0 0 auto;
 		}
 
@@ -226,21 +324,21 @@
 			flex: 1 1 auto;
 			min-height: 0;
 			overflow: hidden;
-			padding: 4px 8px 8px;
+			padding: 0 8px 8px;
 		}
 
 		svg { display: block; overflow: hidden; }
 
 		.link {
 			fill: none;
-			stroke: #b0bec5;
+			stroke: var(--edge-stroke);
 			transition: opacity 0.15s;
 		}
 		.link.faded { opacity: 0.05; }
 		.link.highlighted { stroke: #E87840; stroke-width: 2.5px; opacity: 1; }
 
 		.node-circle {
-			stroke: #fff;
+			stroke: var(--node-stroke);
 			stroke-width: 1.5px;
 			cursor: pointer;
 			transition: opacity 0.15s, filter 0.15s;
@@ -252,10 +350,12 @@
 		.node-label {
 			pointer-events: none;
 			font-size: 0.75rem;
-			fill: #1a2a3a;
+			fill: var(--node-label-fill);
 			transition: opacity 0.15s;
 		}
 		.node-label.faded { opacity: 0.1; }
+		.node-label.selected { font-size: 1.125rem; font-weight: 700; }
+		.node-label.focused { font-size: 1.125rem; font-weight: 400; }
 
 		#detailPanel {
 			position: absolute;
@@ -263,43 +363,53 @@
 			left: 14px;
 			width: 340px;
 			max-height: calc(100% - 26px);
-			overflow-y: auto;
-			background: #fff;
-			border: 1px solid #b0c4d8;
+			overflow: hidden;
+			display: none;
+			flex-direction: column;
+			background: var(--surface-2);
+			border: 1px solid var(--border-3);
 			border-radius: 10px;
-			padding: 12px 14px;
 			font-size: 0.78125rem;
 			line-height: 1.6;
-			box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+			box-shadow: 0 6px 18px var(--shadow-strong);
 			z-index: 120;
-			display: none;
+		}
+		/* The scrollbar lives on this inner wrapper, not on #detailPanel itself,
+		   so it's clipped by the panel's rounded corners instead of the native
+		   scrollbar (especially its hover-widened track in Chromium) poking
+		   past the border. */
+		#detailPanelBody {
+			flex: 1 1 auto;
+			min-height: 0;
+			overflow-y: auto;
+			padding: 12px 14px;
 		}
 		#detailPanel.pinned { border-color: #18A8D5; border-width: 2px; }
-		#detailPanel strong { color: #1a2a3a; font-size: 0.84375rem; }
+		#detailPanel strong { color: var(--text-strong); font-size: 0.84375rem; }
 		#detailPanel a { color: #18A8D5; text-decoration: none; font-weight: 600; }
 		#detailPanel a:hover { text-decoration: underline; }
-		#detailPanel .section { margin-top: 8px; border-top: 1px solid #eef2f7; padding-top: 6px; }
-		#detailPanel .paper-item { margin-bottom: 5px; color: #394959; font-size: 0.73125rem; }
+		#detailPanel .section { margin-top: 8px; border-top: 1px solid var(--border-1); padding-top: 6px; }
+		#detailPanel .paper-item { margin-bottom: 5px; color: var(--paper-item-color); font-size: 0.73125rem; }
 		#detailPanel .collab-link {
 			display: inline-block;
 			margin: 2px 5px 2px 0;
 			padding: 2px 7px;
 			border-radius: 999px;
-			background: #eef7fc;
-			color: #136f8c;
+			background: var(--collab-bg);
+			color: var(--collab-fg);
 			font-size: 0.71875rem;
 			cursor: pointer;
 		}
-		#detailPanel .collab-link:hover { background: #d9edf8; }
+		#detailPanel .collab-link:hover { background: var(--collab-hover-bg); }
 		#detail-close {
 			position: absolute;
 			top: 6px;
-			right: 8px;
+			right: 22px;
 			background: none;
 			border: none;
 			font-size: 1rem;
 			line-height: 1;
-			color: #97a6b5;
+			color: var(--close-color);
 			cursor: pointer;
 			padding: 0 2px;
 		}
@@ -333,7 +443,7 @@
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: rgba(0, 0, 0, 0.5);
+			background: var(--shadow-modal-bg);
 			z-index: 1000;
 			align-items: center;
 			justify-content: center;
@@ -342,9 +452,9 @@
 			display: flex;
 		}
 		#infoModal-content {
-			background: #fff;
+			background: var(--surface-2);
 			border-radius: 12px;
-			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+			box-shadow: 0 20px 60px var(--shadow-modal-content);
 			max-width: 600px;
 			width: 90%;
 			max-height: 80vh;
@@ -355,17 +465,17 @@
 		#infoModal-content h2 {
 			margin: 0 0 16px 0;
 			font-size: 1.375rem;
-			color: #1a2a3a;
+			color: var(--text-strong);
 		}
 		#infoModal-content h3 {
 			margin: 20px 0 10px 0;
 			font-size: 1rem;
-			color: #394959;
+			color: var(--text-page);
 		}
 		#infoModal-content p {
 			margin: 8px 0;
 			line-height: 1.5;
-			color: #52606d;
+			color: var(--paper-item-color);
 			font-size: 0.875rem;
 		}
 		#infoModal-content ul {
@@ -374,7 +484,7 @@
 		}
 		#infoModal-content li {
 			margin: 6px 0;
-			color: #52606d;
+			color: var(--paper-item-color);
 			font-size: 0.875rem;
 		}
 		#infoModal-close {
@@ -384,7 +494,7 @@
 			background: none;
 			border: none;
 			font-size: 1.75rem;
-			color: #97a6b5;
+			color: var(--close-color);
 			cursor: pointer;
 			padding: 0;
 			width: 32px;
@@ -411,7 +521,7 @@
 			border-radius: 6px;
 			font-size: 0.875rem;
 			font-weight: bold;
-			box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+			box-shadow: 0 2px 6px var(--shadow-mobile-btn);
 		}
 		#mobileMenuBtn:hover { background: #1080a0; }
 
@@ -430,21 +540,22 @@
 				left: -320px;
 				width: 280px;
 				height: 100vh;
-				background: #ffffff;
+				background: var(--surface-1);
 				z-index: 999;
 				transition: left 0.3s ease;
 				overflow-y: auto;
-				box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+				box-shadow: 4px 0 15px var(--shadow-sidebar);
 				padding-top: 50px;
-				border-right: 1px solid #dbe4ef;
+				border-right: 1px solid var(--border-1);
 			}
 			#headerArea.open { left: 0; }
-			
+
 			/* Stack header elements vertically inside sidebar */
 			#controls { flex-direction: column; align-items: stretch; border: none; padding: 10px 14px; }
 			#statsBar { flex-direction: column; gap: 8px; border: none; padding: 10px 14px; }
 			.page-tabs { flex-direction: column; gap: 6px; margin: 0 14px 10px; }
 			.page-tab { text-align: center; }
+			#themeToggle { width: 100%; }
 			input[type=range], #searchBox { width: 100%; }
 			.ctrl-group { flex-wrap: wrap; }
 		}
@@ -453,12 +564,13 @@
 <body>
 <div id="app">
 	<button id="mobileMenuBtn">☰ Menu</button>
-	
+
 	<div id="headerArea">
 		<h1>NAS Publication Network</h1>
 		<div class="page-tabs">
 			<a href="network.html" class="page-tab active">Network</a>
 			<a href="table.html" class="page-tab">Table</a>
+			<button id="themeToggle" type="button">Dark theme</button>
 		</div>
 
 		<div id="controls">
@@ -523,7 +635,8 @@
 			<p>Each node represents a researcher. Nodes are connected if they have co-authored at least one paper together. The size of each node indicates the number of papers published by that researcher. The node colours:</p>
 			<ul>
 				<li><strong>Blue nodes:</strong> Current NAS employees</li>
-				<li><strong>Orange nodes:</strong> Former NAS employees</li>
+				<li><strong>Red nodes:</strong> Former NAS employees</li>
+				<li><strong>Gold nodes:</strong> Former NAS Master students</li>
 				<li><strong>Green nodes:</strong> External researchers</li>
 			</ul>
 
@@ -547,19 +660,29 @@
 </div>
 
 <script>
+// Applied as early as possible (before first draw) to avoid a light-theme flash
+// when the user's last choice was dark.
+(function initTheme() {
+	const saved = localStorage.getItem('nas-network-theme');
+	document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+})();
+
+function cssVar(name) {
+	return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 const NODE_COLOUR_UNI    = "#18A8D5";
 const NODE_COLOUR_EXUNI  = "#D54518";
 const NODE_COLOUR_OTHER  = "#52c9a4";
-const LOCATION_EXCEL_PEOPLE = '../data/source_people.xlsx';
+const NODE_COLOUR_FORMER_MSC = "#E8B93F";
+const LOCATION_EXCEL_PEOPLE = '../data/source_people_new.xlsx';
 const LOCATION_EXCEL_PAPERS = '../data/source_papers.xlsx';
 
 let WIDTH = 1200;
 let HEIGHT = 800;
 let CX = WIDTH / 2;
 let CY = HEIGHT / 2;
-let R_NAS = 180;
-let R_FORMER = 300;
-let R_EXT = 420;
+let ringRadii = { nas: [], former: [], formerMsc: [], ext: [] };
 
 let nodes = [];
 let jsonPapers = [];
@@ -600,31 +723,26 @@ function wireDetailPanelDelegation() {
 
 function updateViewportLayout() {
 	const app = document.getElementById('app');
-	
+
 	// Safety checks in case HTML nodes are missing
 	const titleH = app.querySelector('h1') ? app.querySelector('h1').offsetHeight : 0;
 	const controlsH = document.getElementById('controls') ? document.getElementById('controls').offsetHeight : 0;
 	const statsH = document.getElementById('statsBar') ? document.getElementById('statsBar').offsetHeight : 0;
 	const chart = document.getElementById('chart');
-	
+
 	// Check if on mobile view to determine used height
 	const isMobile = window.innerWidth <= 1000;
-	const used = isMobile ? 45 : (titleH + controlsH + statsH + 24);
-	
+	const used = isMobile ? 45 : (titleH + controlsH + statsH + 8);
+
 	const availH = Math.max(420, window.innerHeight - used);
 	const availW = Math.max(880, window.innerWidth - 18);
-	
+
 	if(chart) chart.style.height = availH + 'px';
-	
+
 	WIDTH = availW;
 	HEIGHT = availH - 4;
 	CX = WIDTH / 2;
 	CY = HEIGHT / 2;
-	const minSide = Math.max(320, Math.min(WIDTH, HEIGHT));
-	const step = minSide * 0.18;
-	R_NAS = step * 1.;
-	R_FORMER = step * 1.6;
-	R_EXT = step * 1.9;
 }
 
 window.addEventListener('resize', () => {
@@ -643,13 +761,22 @@ async function fetchPeople() {
 	nodes = XLSX.utils.sheet_to_json(ws);
 	nodes.forEach((p, i) => {
 		p.id = 10000 + i;
-		if (String(p.position || '').includes('Former')) {
-			p.isUniversity = 2;
+		p.isUniversity = classifyPosition(p.position);
+		if (p.isUniversity !== 1) {
 			p.institutions = p.position;
-		} else {
-			p.isUniversity = 1;
+		}
+		if (!p.name_abbrev) {
+			p.name_abbrev = `id_${p.id}`;
 		}
 	});
+}
+
+function classifyPosition(position) {
+	const first = String(position || '').split(/\s+and\s+/i)[0].trim();
+	const isFormer = /former/i.test(first);
+	if (!isFormer) return 1;
+	if (/master|msc/i.test(first)) return 3;
+	return 2;
 }
 
 async function fetchPapers() {
@@ -722,11 +849,24 @@ async function fetchPapers() {
 		}
 	});
 	linksByName = Object.values(linkMap);
+
+	// Graph degree (unique collaborators), used to order nodes radially.
+	const neighborSets = new Map();
+	linksByName.forEach(l => {
+		if (!neighborSets.has(l.sourceName)) neighborSets.set(l.sourceName, new Set());
+		if (!neighborSets.has(l.targetName)) neighborSets.set(l.targetName, new Set());
+		neighborSets.get(l.sourceName).add(l.targetName);
+		neighborSets.get(l.targetName).add(l.sourceName);
+	});
+	nodes.forEach(nd => {
+		nd.degree = (neighborSets.get(nd.name_abbrev) || new Set()).size;
+	});
 }
 
 function nodeColour(d) {
 	if (d.isUniversity === 1) return NODE_COLOUR_UNI;
 	if (d.isUniversity === 2) return NODE_COLOUR_EXUNI;
+	if (d.isUniversity === 3) return NODE_COLOUR_FORMER_MSC;
 	return NODE_COLOUR_OTHER;
 }
 
@@ -739,48 +879,104 @@ function getNodeRadius(d) {
 	return Math.max(3.5, base);
 }
 
-function orderEvenly(nodesInRing) {
-	const sorted = nodesInRing.slice().sort((a, b) => b.numPapers - a.numPapers);
-	const result = [];
-	let left = 0;
-	let right = sorted.length - 1;
-	while (left <= right) {
-		result.push(sorted[left++]);
-		if (left <= right) result.push(sorted[right--]);
+// Orders nodes by descending paper count (the same metric that drives node
+// size, via getNodeRadius/numPapers) so the spiral and the node sizes agree:
+// biggest nodes near the center, smaller ones progressively further out.
+// layoutCategoryShells() walks this array outward along a single spiral.
+function orderByDegree(nodesInRing) {
+	return nodesInRing.slice().sort((a, b) => {
+		const p = (b.numPapers || 0) - (a.numPapers || 0);
+		if (p !== 0) return p;
+		const d = (b.degree || 0) - (a.degree || 0);
+		return d !== 0 ? d : a.name_abbrev.localeCompare(b.name_abbrev);
+	});
+}
+
+// Lays a category out along one continuous Archimedean-style spiral (instead
+// of independent concentric rings that each restart at the top) so degree
+// order keeps flowing smoothly from the center outward, circle after circle,
+// rather than resetting at every ring boundary.
+function layoutCategoryShells(arr, baseRadius, startOffset) {
+	if (!arr.length) return { shellRadii: [], outerRadius: baseRadius };
+
+	// Nodes are ordered by degree, so same-size nodes can end up adjacent
+	// along the spiral. Base spacing on the largest node in the category
+	// (not the average) so that worst-case adjacent pairs still clear
+	// each other, both along the arc and between successive turns.
+	const maxDiameter = (d3.max(arr, getNodeRadius) || 6) * 2;
+	const spacing = maxDiameter * 1.5;
+	const turnGap = maxDiameter * 1.8;
+	const k = turnGap / (2 * Math.PI);
+
+	let theta = 0;
+	arr.forEach(nd => {
+		const radius = baseRadius + k * theta;
+		const angle = theta - Math.PI / 2 + startOffset;
+		nd.x = CX + radius * Math.cos(angle);
+		nd.y = CY + radius * Math.sin(angle);
+		nd.angle = angle;
+		nd.ringRadius = radius;
+		theta += spacing / Math.max(radius, spacing);
+	});
+
+	const numTurns = Math.floor(theta / (2 * Math.PI));
+	const shellRadii = [];
+	for (let n = 1; n <= numTurns; n++) {
+		shellRadii.push(baseRadius + k * n * 2 * Math.PI);
 	}
-	return result;
+	return { shellRadii, outerRadius: baseRadius + k * theta };
+}
+
+// Parks a set of nodes evenly on one far-off ring, used to move hidden
+// (nasOnly-filtered) categories out of the visible viewport.
+function placeRing(arr, radius, startOffset) {
+	if (!arr.length) return;
+	arr.forEach((nd, i) => {
+		const angle = (2 * Math.PI * i) / arr.length - Math.PI / 2 + startOffset;
+		nd.x = CX + radius * Math.cos(angle);
+		nd.y = CY + radius * Math.sin(angle);
+		nd.angle = angle;
+		nd.ringRadius = radius;
+	});
 }
 
 function assignPositions() {
-	const nasNodes = orderEvenly(nodes.filter(n => n.isUniversity === 1));
-	const formerNodes = orderEvenly(nodes.filter(n => n.isUniversity === 2));
-	const extNodes = orderEvenly(nodes.filter(n => n.isUniversity === 0));
-
-	function placeRing(arr, radius, startOffset) {
-		if (!arr.length) return;
-		arr.forEach((nd, i) => {
-			const angle = (2 * Math.PI * i) / (arr.length % 200) - Math.PI / 2 + startOffset;
-			if (i % 200 == 0) {
-				radius *= 1.1;
-			}
-			nd.x = CX + radius * Math.cos(angle);
-			nd.y = CY + radius * Math.sin(angle);
-			nd.angle = angle;
-			nd.ringRadius = radius;
-		});
-	}
+	const nasNodes = orderByDegree(nodes.filter(n => n.isUniversity === 1));
+	const formerNodes = orderByDegree(nodes.filter(n => n.isUniversity === 2));
+	const formerMscNodes = orderByDegree(nodes.filter(n => n.isUniversity === 3));
+	const extNodes = orderByDegree(nodes.filter(n => n.isUniversity === 0));
 
 	if (nasOnly) {
-		const ringRadius = Math.min(WIDTH, HEIGHT) * 0.34;
-		placeRing(nasNodes, ringRadius, 0);
-		placeRing(formerNodes, ringRadius * 10, 0);
-		placeRing(extNodes, ringRadius * 10, 0);
+		const nasResult = layoutCategoryShells(nasNodes, Math.min(WIDTH, HEIGHT) * 0.34, 0);
+		const farRadius = (nasResult.outerRadius || Math.min(WIDTH, HEIGHT) * 0.34) * 10;
+		ringRadii = { nas: nasResult.shellRadii, former: [], formerMsc: [], ext: [] };
+		placeRing(formerNodes, farRadius, 0);
+		placeRing(formerMscNodes, farRadius, 0);
+		placeRing(extNodes, farRadius, 0);
 		return;
 	}
 
-	placeRing(nasNodes, R_NAS, 0);
-	placeRing(formerNodes, R_FORMER, Math.PI / 36);
-	placeRing(extNodes, R_EXT, Math.PI / 72);
+	const minSide = Math.max(320, Math.min(WIDTH, HEIGHT));
+	const step = minSide * 0.18;
+	const categoryGap = step * 0.35;
+
+	// Each category starts its spiral at a different point around the
+	// circle (quarter turns apart) so the four spirals are visually
+	// distinguishable instead of all launching from the same top position.
+	let result = layoutCategoryShells(nasNodes, step * 1.0, 0);
+	ringRadii.nas = result.shellRadii;
+	let radius = result.outerRadius;
+
+	result = layoutCategoryShells(formerNodes, Math.max(step * 1.6, radius + categoryGap), Math.PI / 2);
+	ringRadii.former = result.shellRadii;
+	radius = result.outerRadius;
+
+	result = layoutCategoryShells(formerMscNodes, Math.max(step * 1.75, radius + categoryGap), Math.PI);
+	ringRadii.formerMsc = result.shellRadii;
+	radius = result.outerRadius;
+
+	result = layoutCategoryShells(extNodes, Math.max(step * 1.9, radius + categoryGap), 1.5 * Math.PI);
+	ringRadii.ext = result.shellRadii;
 }
 
 function resolveLinks() {
@@ -817,8 +1013,12 @@ function updateDetailPanel(node, pinMode) {
 	const papersToShow = node.topPapers || [];
 	const papersHtml = node.topPapersHtml || '';
 	const collabHtml = collabNames.length
-		? collabNames.map(n => `<a href="#" class="collab-link" data-name="${n}">${n}</a>`).join('')
-		: '<span style="color:#8fa0b0">No visible collaborators under current filters</span>';
+		? collabNames.map(n => {
+			const collabNode = visibleNodeLookup.get(n);
+			const collabDisplay = (collabNode && (collabNode.name || collabNode.name_abbrev)) || n;
+			return `<a href="#" class="collab-link" data-name="${n}">${collabDisplay}</a>`;
+		}).join('')
+		: `<span style="color:${cssVar('--detail-nocollab')}">No visible collaborators under current filters</span>`;
 
 	const profileName = node.name || node.name_abbrev;
 	const clickableName = node.isUniversity === 1 && node.url && node.url !== '#'
@@ -827,16 +1027,18 @@ function updateDetailPanel(node, pinMode) {
 
 	detailPanel.innerHTML = `
 		<button id="detail-close" title="Close">&times;</button>
-		${node.picture ? `<img src="${node.picture}" alt="Profile picture" style="width:56px;height:auto;border-radius:35%;margin-bottom:8px;display:block;">` : ''}
-		<strong>${clickableName}</strong><br>
-		${node.institutions ? `<span style="color:#718395">${node.institutions}</span><br>` : ''}
-		${node.position && node.isUniversity === 1 ? `Position: ${node.position}<br>` : ''}
-		Papers: <b>${node.numPapers}</b> &nbsp;|&nbsp; Collaborators: <b>${collabNames.length}</b>
-		<div class="section"><b>Latest papers in NAS</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
-		<div class="section"><b>Collaborators (click to navigate)</b><br>${collabHtml}</div>
+		<div id="detailPanelBody">
+			${node.picture ? `<img src="${node.picture}" alt="Profile picture" style="width:56px;height:auto;border-radius:35%;margin-bottom:8px;display:block;">` : ''}
+			<strong>${clickableName}</strong><br>
+			${node.institutions ? `<span style="color:${cssVar('--detail-muted')}">${node.institutions}</span><br>` : ''}
+			${node.position && node.isUniversity === 1 ? `Position: ${node.position}<br>` : ''}
+			Papers: <b>${node.numPapers}</b> &nbsp;|&nbsp; Collaborators: <b>${collabNames.length}</b>
+			<div class="section"><b>Latest papers in NAS</b>${papersHtml || '<div class="paper-item">No papers found</div>'}</div>
+			<div class="section"><b>Collaborators (click to navigate)</b><br>${collabHtml}</div>
+		</div>
 	`;
 	detailPanel.classList.toggle('pinned', !!pinMode);
-	detailPanel.style.display = 'block';
+	detailPanel.style.display = 'flex';
 }
 
 function edgeKey(linkObj) {
@@ -844,14 +1046,14 @@ function edgeKey(linkObj) {
 }
 
 function draw() {
+	const maxPapers = d3.max(nodes, d => d.numPapers) || 1;
+	radiusScale.domain([0, maxPapers]);
+
 	assignPositions();
 	const allLinks = resolveLinks();
 
 	d3.select('#loading').style('display', 'none');
 	d3.select('#chart').selectAll('svg').remove();
-
-	const maxPapers = d3.max(nodes, d => d.numPapers) || 1;
-	radiusScale.domain([0, maxPapers]);
 
 	const linkThreshold = +document.getElementById('linkThreshold').value;
 	const nodeThreshold = +document.getElementById('nodeThreshold').value;
@@ -907,34 +1109,43 @@ function draw() {
 		.on('click', () => clearSelection());
 
 	const zoomContainer = svg.append('g').attr('class', 'zoom-container');
-	svg.call(d3.zoom()
+	const zoomBehavior = d3.zoom()
 		.scaleExtent([0.2, 8])
 		.on('zoom', function(event) {
 			zoomContainer.attr('transform', event.transform);
-		}));
+		});
+	svg.call(zoomBehavior);
+
+	if (visibleNodes.length) {
+		const pad = 40;
+		const xs = visibleNodes.map(d => d.x);
+		const ys = visibleNodes.map(d => d.y);
+		const minX = Math.min(...xs) - pad, maxX = Math.max(...xs) + pad;
+		const minY = Math.min(...ys) - pad, maxY = Math.max(...ys) + pad;
+		const scale = 0.9 * Math.max(0.2, Math.min(1, WIDTH / (maxX - minX), HEIGHT / (maxY - minY)));
+		const tx = WIDTH / 2 - scale * (minX + maxX) / 2;
+		// Bias the vertical centering upward so the graph sits closer to the
+		// controls bar instead of being perfectly centered (which left a
+		// noticeably larger gap above than below).
+		const ty = HEIGHT * 0.46 - scale * (minY + maxY) / 2;
+		svg.call(zoomBehavior.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+	}
 
 	const ringGuide = zoomContainer.append('g').attr('class', 'rings');
-	if (!nasOnly) {
-		[R_NAS, R_FORMER, R_EXT].forEach(r => {
-			ringGuide.append('circle')
-				.attr('cx', CX)
-				.attr('cy', CY)
-				.attr('r', r)
-				.attr('fill', 'none')
-				.attr('stroke', '#dde3ec')
-				.attr('stroke-dasharray', '4,4')
-				.attr('stroke-width', 1);
-		});
-	} else {
+	const guideRadii = nasOnly
+		? ringRadii.nas
+		: [...ringRadii.nas, ...ringRadii.former, ...ringRadii.formerMsc, ...ringRadii.ext];
+	guideRadii.forEach(r => {
+		if (!r) return;
 		ringGuide.append('circle')
 			.attr('cx', CX)
 			.attr('cy', CY)
-			.attr('r', Math.min(WIDTH, HEIGHT) * 0.34)
+			.attr('r', r)
 			.attr('fill', 'none')
-			.attr('stroke', '#dde3ec')
+			.attr('stroke', cssVar('--ring-guide-stroke'))
 			.attr('stroke-dasharray', '4,4')
 			.attr('stroke-width', 1);
-	}
+	});
 
 	const linkSel = zoomContainer.append('g').attr('class', 'links')
 		.selectAll('path')
@@ -955,6 +1166,16 @@ function draw() {
 		.attr('stroke-width', d => linkStroke(d.count))
 		.attr('stroke-opacity', d => Math.max(0.25, Math.min(1.0, 0.11 * d.count)));
 
+	// Name/key -> DOM element lookups, built once per draw() so that hover/click
+	// focus updates below can touch individual elements directly (classList.toggle
+	// / setAttribute) instead of re-filtering the entire node/link selection on
+	// every mouse event. That full-selection re-filter (the original approach) is
+	// what made hovering feel sluggish on ~700 nodes in Chromium-based browsers.
+	const linkElemByKey = new Map();
+	linkSel.each(function(d) {
+		linkElemByKey.set(edgeKey(d), this);
+	});
+
 	const nodeSel = zoomContainer.append('g').attr('class', 'nodes')
 		.selectAll('g')
 		.data(visibleNodes)
@@ -967,18 +1188,27 @@ function draw() {
 		.attr('r', d => getNodeRadius(d))
 		.attr('fill', nodeColour);
 
+	// The selected/focused label renders in a larger font (see .node-label.selected
+	// / .focused), so it needs a bit more clearance from the node circle to avoid
+	// sitting on top of it.
+	function labelRadius(d, emphasized) {
+		return getNodeRadius(d) + (emphasized ? 9 : 3);
+	}
+	function labelX(d, emphasized) {
+		const angle = d.angle || 0;
+		const r = labelRadius(d, emphasized);
+		return r * Math.cos(angle) + (Math.cos(angle) >= 0 ? 2 : -2);
+	}
+	function labelY(d, emphasized) {
+		const angle = d.angle || 0;
+		const r = labelRadius(d, emphasized);
+		return r * Math.sin(angle);
+	}
+
 	nodeSel.append('text')
 		.attr('class', 'node-label')
-		.attr('x', d => {
-			const angle = d.angle || 0;
-			const r = getNodeRadius(d) + 3;
-			return r * Math.cos(angle) + (Math.cos(angle) >= 0 ? 2 : -2);
-		})
-		.attr('y', d => {
-			const angle = d.angle || 0;
-			const r = getNodeRadius(d) + 3;
-			return r * Math.sin(angle);
-		})
+		.attr('x', d => labelX(d, false))
+		.attr('y', d => labelY(d, false))
 		.attr('text-anchor', d => {
 			const angle = d.angle || 0;
 			return Math.cos(angle) >= 0 ? 'start' : 'end';
@@ -987,30 +1217,115 @@ function draw() {
 		.text(d => d.name || d.name_abbrev)
 		.style('display', labelsVisible ? 'block' : 'none');
 
+	const nodeElemByName = new Map();
+	nodeSel.each(function(d) {
+		nodeElemByName.set(d.name_abbrev, {
+			g: this,
+			circle: this.querySelector('circle'),
+			text: this.querySelector('text')
+		});
+	});
+
+	function setNodeFaded(name, faded) {
+		const el = nodeElemByName.get(name);
+		if (!el) return;
+		if (el.circle) el.circle.classList.toggle('faded', faded);
+		if (el.text) el.text.classList.toggle('faded', faded);
+	}
+	function setNodeHighlighted(name, on) {
+		const el = nodeElemByName.get(name);
+		if (el && el.circle) el.circle.classList.toggle('highlighted', on);
+	}
+	function setNodeEmphasis(name, on, pinned) {
+		const el = nodeElemByName.get(name);
+		if (!el) return;
+		if (el.circle) el.circle.classList.toggle('selected', on && pinned);
+		if (el.text) {
+			el.text.classList.toggle('selected', on && pinned);
+			el.text.classList.toggle('focused', on && !pinned);
+			const d = visibleNodeLookup.get(name);
+			if (d) {
+				el.text.setAttribute('x', labelX(d, on));
+				el.text.setAttribute('y', labelY(d, on));
+			}
+		}
+	}
+	function showLabel(name, show) {
+		const el = nodeElemByName.get(name);
+		if (el && el.text) el.text.style.display = show ? 'block' : 'none';
+	}
+	function setLinkHighlighted(key, on) {
+		const el = linkElemByKey.get(key);
+		if (el) el.classList.toggle('highlighted', on);
+	}
+
+	// Tracks the DOM state produced by the last focus/clear/search call so that
+	// applyFocusNode() only has to touch what actually changed (typically just
+	// the old and new hover targets and their neighbours) instead of re-scanning
+	// every node on every hover. focusedNames starts as "everyone" because fresh
+	// elements have no .faded class yet, i.e. nothing is faded at draw() time.
+	let focusedNames = new Set(visibleNodes.map(nd => nd.name_abbrev));
+	let highlightedNames = new Set();
+	let highlightedEdgeKeys = new Set();
+	let emphasis = { name: null, pinned: false };
+	let shownLabelName = null;
+
 	function setLabelVisibility(focusName) {
 		nodeSel.select('text')
 			.style('display', nd => (labelsVisible || (focusName && nd.name_abbrev === focusName)) ? 'block' : 'none');
 	}
 
 	function clearStyles() {
-		nodeSel.select('circle').classed('faded', false).classed('highlighted', false).classed('selected', false);
-		nodeSel.select('text').classed('faded', false);
-		linkSel.classed('faded', false).classed('highlighted', false);
-		setLabelVisibility(null);
+		// Only sweep all nodes if something is actually faded right now; on a
+		// fresh draw() (nothing hovered/pinned yet) this is a no-op.
+		if (focusedNames.size !== visibleNodes.length) {
+			visibleNodes.forEach(nd => {
+				if (!focusedNames.has(nd.name_abbrev)) setNodeFaded(nd.name_abbrev, false);
+			});
+		}
+		highlightedNames.forEach(name => setNodeHighlighted(name, false));
+		if (emphasis.name) setNodeEmphasis(emphasis.name, false, false);
+		highlightedEdgeKeys.forEach(key => setLinkHighlighted(key, false));
+		if (shownLabelName) {
+			showLabel(shownLabelName, false);
+			shownLabelName = null;
+		}
+
+		focusedNames = new Set(visibleNodes.map(nd => nd.name_abbrev));
+		highlightedNames = new Set();
+		highlightedEdgeKeys = new Set();
+		emphasis = { name: null, pinned: false };
 	}
 
 	function applyFocusNode(nodeName, isPinnedSelection) {
 		const info = neighboursOf(nodeName);
-		const nodeSet = new Set([nodeName, ...info.neighbours]);
-		nodeSel.select('circle')
-			.classed('faded', nd => !nodeSet.has(nd.name_abbrev))
-			.classed('highlighted', nd => info.neighbours.includes(nd.name_abbrev))
-			.classed('selected', nd => nd.name_abbrev === nodeName && !!isPinnedSelection);
-		nodeSel.select('text').classed('faded', nd => !nodeSet.has(nd.name_abbrev));
-		linkSel
-			.classed('highlighted', l => info.incidentLinkKeys.has(edgeKey(l)));
-		nodeSel.filter(nd => nd.name_abbrev === nodeName).raise();
-		setLabelVisibility(nodeName);
+		const newFocused = new Set([nodeName, ...info.neighbours]);
+		const newHighlighted = new Set(info.neighbours);
+
+		newFocused.forEach(name => { if (!focusedNames.has(name)) setNodeFaded(name, false); });
+		focusedNames.forEach(name => { if (!newFocused.has(name)) setNodeFaded(name, true); });
+		focusedNames = newFocused;
+
+		newHighlighted.forEach(name => { if (!highlightedNames.has(name)) setNodeHighlighted(name, true); });
+		highlightedNames.forEach(name => { if (!newHighlighted.has(name)) setNodeHighlighted(name, false); });
+		highlightedNames = newHighlighted;
+
+		if (!(emphasis.name === nodeName && emphasis.pinned === !!isPinnedSelection)) {
+			if (emphasis.name) setNodeEmphasis(emphasis.name, false, false);
+			setNodeEmphasis(nodeName, true, !!isPinnedSelection);
+			emphasis = { name: nodeName, pinned: !!isPinnedSelection };
+		}
+
+		const newEdgeKeys = info.incidentLinkKeys;
+		newEdgeKeys.forEach(key => { if (!highlightedEdgeKeys.has(key)) setLinkHighlighted(key, true); });
+		highlightedEdgeKeys.forEach(key => { if (!newEdgeKeys.has(key)) setLinkHighlighted(key, false); });
+		highlightedEdgeKeys = newEdgeKeys;
+
+		if (!labelsVisible) {
+			if (shownLabelName && shownLabelName !== nodeName) showLabel(shownLabelName, false);
+			showLabel(nodeName, true);
+			shownLabelName = nodeName;
+		}
 	}
 
 	function applySearch(searchText) {
@@ -1034,15 +1349,31 @@ function draw() {
 				edgeSet.add(edgeKey(l));
 			}
 		});
+		// Search re-evaluates on every keystroke but is naturally throttled by
+		// typing speed, so a full sweep here (unlike per-hover) isn't a hot path.
 		nodeSel.select('circle')
 			.classed('faded', nd => !nodeSet.has(nd.name_abbrev))
 			.classed('highlighted', nd => matchNames.has(nd.name_abbrev))
 			.classed('selected', false);
-		nodeSel.select('text').classed('faded', nd => !nodeSet.has(nd.name_abbrev));
+		nodeSel.select('text')
+			.classed('faded', nd => !nodeSet.has(nd.name_abbrev))
+			.classed('selected', false)
+			.classed('focused', false)
+			.attr('x', nd => labelX(nd, false))
+			.attr('y', nd => labelY(nd, false));
 		linkSel
 			.classed('faded', l => !edgeSet.has(edgeKey(l)))
 			.classed('highlighted', l => edgeSet.has(edgeKey(l)));
 		setLabelVisibility(null);
+
+		// Keep the incremental-update tracking state in sync with the DOM state
+		// this full sweep just produced, so the next hover (which only diffs
+		// against this state) starts from the correct baseline.
+		focusedNames = nodeSet;
+		highlightedNames = matchNames;
+		highlightedEdgeKeys = edgeSet;
+		emphasis = { name: null, pinned: false };
+		shownLabelName = null;
 		return true;
 	}
 
@@ -1114,36 +1445,41 @@ function draw() {
 	[
 		{ color: NODE_COLOUR_UNI, label: 'NAS employees' },
 		{ color: NODE_COLOUR_EXUNI, label: 'Former NAS employees' },
+		{ color: NODE_COLOUR_FORMER_MSC, label: 'Former NAS Master students' },
 		{ color: NODE_COLOUR_OTHER, label: 'External researchers' }
 	].forEach((item, i) => {
 		const g = legend.append('g').attr('transform', `translate(0,${i * 20})`);
 		g.append('circle').attr('r', 6).attr('cx', 6).attr('cy', 6).attr('fill', item.color);
-		g.append('text').attr('x', 18).attr('y', 10).style('font-size', '0.75rem').text(item.label);
+		g.append('text').attr('x', 18).attr('y', 10).style('font-size', '0.75rem').style('fill', cssVar('--legend-fill')).text(item.label);
 	});
 
-	svg.append('text')
-		.attr('x', WIDTH - 12)
-		.attr('y', HEIGHT - 34)
-		.attr('text-anchor', 'end')
-		.style('font-size', '0.6875rem')
-		.style('fill', '#7f8da0')
-		.text(`${visibleNodes.length} nodes - ${visibleLinks.length} links shown`);
+	// Hide this footnote on narrow windows, where it otherwise sits on top
+	// of the chart in the bottom-right corner.
+	if (window.innerWidth > 1000) {
+		svg.append('text')
+			.attr('x', WIDTH - 12)
+			.attr('y', HEIGHT - 34)
+			.attr('text-anchor', 'end')
+			.style('font-size', '0.6875rem')
+			.style('fill', cssVar('--footnote-fill-1'))
+			.text(`${visibleNodes.length} nodes - ${visibleLinks.length} links shown`);
 
-	svg.append('text')
-		.attr('x', WIDTH - 12)
-		.attr('y', HEIGHT - 21)
-		.attr('text-anchor', 'end')
-		.style('font-size', '0.65625rem')
-		.style('fill', '#8a97a8')
-		.text('Node size = sqrt(#papers) x group factor');
+		svg.append('text')
+			.attr('x', WIDTH - 12)
+			.attr('y', HEIGHT - 21)
+			.attr('text-anchor', 'end')
+			.style('font-size', '0.65625rem')
+			.style('fill', cssVar('--footnote-fill-2'))
+			.text('Node size = sqrt(#papers) x group factor');
 
-	svg.append('text')
-		.attr('x', WIDTH - 12)
-		.attr('y', HEIGHT - 8)
-		.attr('text-anchor', 'end')
-		.style('font-size', '0.65625rem')
-		.style('fill', '#8a97a8')
-		.text('Factors: NAS 1.34 | Former NAS 1.16 | External 1.00');
+		svg.append('text')
+			.attr('x', WIDTH - 12)
+			.attr('y', HEIGHT - 8)
+			.attr('text-anchor', 'end')
+			.style('font-size', '0.65625rem')
+			.style('fill', cssVar('--footnote-fill-2'))
+			.text('Factors: NAS 1.34 | Former NAS 1.16 | External 1.00');
+	}
 }
 
 function clearSelection() {
@@ -1213,7 +1549,7 @@ function exportJSON() {
 			name: n.name || n.name_abbrev,
 			isUniversity: n.isUniversity,
 			numPapers: n.numPapers,
-			institutions: n.institutions || '',
+			institutions: n.isUniversity === 1 ? (n.institutions || '') : '',
 			position: n.position || ''
 		})),
 		edges: lastRendered.visibleLinks.map(l => ({
@@ -1250,7 +1586,8 @@ function exportNodesCSV() {
 		const abbrevName = n.name_abbrev || n.name || '';
 		const lastName = getLastName(abbrevName);
 		const fullName = n.name || n.name_abbrev;
-		lines.push(`${n.id};"${safe(n.name_abbrev)}";"${safe(fullName)}";"${safe(lastName)}";${n.isUniversity};${n.numPapers};"${safe(n.institutions)}";"${safe(n.position)}"`);
+		const institutions = n.isUniversity === 1 ? n.institutions : '';
+		lines.push(`${n.id};"${safe(n.name_abbrev)}";"${safe(fullName)}";"${safe(lastName)}";${n.isUniversity};${n.numPapers};"${safe(institutions)}";"${safe(n.position)}"`);
 	});
 	downloadTextFile('nas_network_nodes.csv', lines.join('\n'), 'text/csv;charset=utf-8;');
 }
@@ -1286,7 +1623,7 @@ function populateAutocomplete() {
 					+ `<span class="match">${displayName.slice(idx, idx + q.length)}</span>`
 					+ displayName.slice(idx + q.length);
 			}
-			return `<div class="dropdown-item" data-name="${searchName}">${highlighted}</div>`;
+			return `<div class="dropdown-item" data-name="${searchName}" data-display="${displayName}">${highlighted}</div>`;
 		}).join('');
 		dropdown.style.display = 'block';
 	}
@@ -1301,7 +1638,7 @@ function populateAutocomplete() {
 		if (!item) return;
 		e.preventDefault();
 		const name = item.dataset.name;
-		input.value = name;
+		input.value = item.dataset.display;
 		dropdown.style.display = 'none';
 		pinByName(name);
 	});
@@ -1318,6 +1655,13 @@ function populateAutocomplete() {
 			draw();
 		}
 	});
+}
+
+function syncThemeButton() {
+	const btn = document.getElementById('themeToggle');
+	if (!btn) return;
+	const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+	btn.textContent = isDark ? 'Light theme' : 'Dark theme';
 }
 
 function wireControls() {
@@ -1341,11 +1685,22 @@ function wireControls() {
 		this.classList.toggle('active', nasOnly);
 		draw();
 	});
+	document.getElementById('themeToggle').addEventListener('click', function() {
+		const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+		const next = isDark ? 'light' : 'dark';
+		document.documentElement.setAttribute('data-theme', next);
+		localStorage.setItem('nas-network-theme', next);
+		syncThemeButton();
+		if (nodes.length) draw();
+	});
+	syncThemeButton();
 	document.getElementById('resetHighlight').addEventListener('click', function() {
 		document.getElementById('searchBox').value = '';
 		document.getElementById('searchDropdown').style.display = 'none';
 		pinnedNodeName = null;
 		hoveredNodeName = null;
+		detailPanel.style.display = 'none';
+		detailPanel.classList.remove('pinned');
 		draw();
 	});
 
