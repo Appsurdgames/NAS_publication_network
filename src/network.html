@@ -1638,7 +1638,7 @@ function populateAutocomplete() {
 		if (!item) return;
 		e.preventDefault();
 		const name = item.dataset.name;
-		input.value = item.dataset.display;
+		input.value = '';
 		dropdown.style.display = 'none';
 		pinByName(name);
 	});
