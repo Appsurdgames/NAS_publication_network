@@ -825,9 +825,9 @@ async function fetchPapers() {
 			let doiPart = '';
 			if (p.doi) {
 				const doiPrefix = p.doi.toLowerCase().startsWith('uuid')
-					? 'https://resolver.tudelft.nl/'
-					: 'https://doi.org/';
-				doiPart = ` <a href="${doiPrefix}${p.doi}" target="_blank">DOI</a>`;
+					? 'resolver.tudelft.nl/'
+					: 'doi.org/';
+				doiPart = ` <a href="//${doiPrefix}${p.doi}" target="_blank">DOI</a>`;
 			}
 			return `<div class="paper-item">${i + 1}. <em>${p.title || 'Untitled'}</em> (${p.year || 'n/a'})${doiPart}</div>`;
 		}).join('');
