@@ -371,8 +371,8 @@ function buildTable(rows) {
 	}).join('');
 	const bodyRows = rows.map(row => {
 		const doi = row.doi || row.DOI || '';
-		const doiUrl = doi ? (doi.toLowerCase().startsWith('uuid') ? 'https://resolver.tudelft.nl/' + doi : 'https://doi.org/' + doi) : '';
-		const linkCell = doiUrl ? `<a href="${escapeHtml(doiUrl)}" target="_blank" rel="noopener noreferrer">Open</a>` : '';
+		const doiUrl = doi ? (doi.toLowerCase().startsWith('uuid') ? 'resolver.tudelft.nl/' + doi : 'doi.org/' + doi) : '';
+		const linkCell = doiUrl ? `<a href="//${escapeHtml(doiUrl)}" target="_blank" rel="noopener noreferrer">Open</a>` : '';
 		const cells = [
 			escapeHtml(row.title || ''),
 			escapeHtml(row.authors || ''),
