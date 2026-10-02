@@ -1020,13 +1020,13 @@ function updateDetailPanel(node, pinMode) {
 
 	const profileName = node.name || node.name_abbrev;
 	const clickableName = node.isUniversity === 1 && node.url && node.url !== '#'
-		? `<a href="${node.url}" target="_blank">${profileName}</a>`
+		? `<a href="//${node.url}" target="_blank">${profileName}</a>`
 		: profileName;
 
 	detailPanel.innerHTML = `
 		<button id="detail-close" title="Close">&times;</button>
 		<div id="detailPanelBody">
-			${node.picture ? `<img src="${node.picture}" alt="Profile picture" style="width:56px;height:auto;border-radius:35%;margin-bottom:8px;display:block;">` : ''}
+			${node.picture ? `<img src="//${node.picture}" alt="Profile picture" style="width:56px;height:auto;border-radius:35%;margin-bottom:8px;display:block;">` : ''}
 			<strong>${clickableName}</strong><br>
 			${node.institutions ? `<span style="color:${cssVar('--detail-muted')}">${node.institutions}</span><br>` : ''}
 			${node.position && node.isUniversity === 1 ? `Position: ${node.position}<br>` : ''}
