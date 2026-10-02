@@ -566,13 +566,6 @@
 	<button id="mobileMenuBtn">☰ Menu</button>
 
 	<div id="headerArea">
-		<h1>NAS Publication Network</h1>
-		<div class="page-tabs">
-			<a href="network.html" class="page-tab active">Network</a>
-			<a href="table.html" class="page-tab">Table</a>
-			<button id="themeToggle" type="button">Dark theme</button>
-		</div>
-
 		<div id="controls">
 			<div class="ctrl-group">
 				<label>Min. shared papers:</label>
@@ -601,6 +594,11 @@
 					<button type="button" data-action="nodes">Download nodes CSV</button>
 				</div>
 			</div>
+			<!-- <div class="page-tabs"> -->
+				<a href="network.html" class="page-tab active">Network</a>
+				<a href="table.html" class="page-tab">Table</a>
+				<button id="themeToggle" type="button">Dark theme</button>
+			<!-- </div> -->
 			<button id="infoButton" class="info-button" type="button" title="Information">i</button>
 		</div>
 
@@ -679,8 +677,8 @@ const LOCATION_EXCEL_PEOPLE = '../data/source_people_new.xlsx';
 const LOCATION_EXCEL_PAPERS = '../data/source_papers.xlsx';
 
 let WIDTH = 1200;
-let HEIGHT = 800;
-let CX = WIDTH / 2;
+let HEIGHT = 2400;
+let CX = WIDTH / 4;
 let CY = HEIGHT / 2;
 let ringRadii = { nas: [], former: [], formerMsc: [], ext: [] };
 
@@ -741,7 +739,7 @@ function updateViewportLayout() {
 
 	WIDTH = availW;
 	HEIGHT = availH - 4;
-	CX = WIDTH / 2;
+	CX = WIDTH / 4;
 	CY = HEIGHT / 2;
 }
 
@@ -1120,8 +1118,10 @@ function draw() {
 		const pad = 40;
 		const xs = visibleNodes.map(d => d.x);
 		const ys = visibleNodes.map(d => d.y);
-		const minX = Math.min(...xs) - pad, maxX = Math.max(...xs) + pad;
+		const minX = 0, maxX = 1000;//= Math.min(...xs) - pad, maxX = Math.max(...xs) + pad;
 		const minY = Math.min(...ys) - pad, maxY = Math.max(...ys) + pad;
+		console.log('minX, maxX:', minX, maxX);
+		console.log('minY, maxY:', minY, maxY);
 		const scale = 0.9 * Math.max(0.2, Math.min(1, WIDTH / (maxX - minX), HEIGHT / (maxY - minY)));
 		const tx = WIDTH / 2 - scale * (minX + maxX) / 2;
 		// Bias the vertical centering upward so the graph sits closer to the
